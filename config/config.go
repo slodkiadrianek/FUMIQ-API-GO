@@ -20,8 +20,11 @@ type Config struct {
 	EmailFrom     string
 }
 
-func LoadConfig() (*Config, error) {
-	godotenv.Load(".env")
+func (c Config) LoadConfig() (*Config, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		panic("Error loading .env file")
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":8080"
