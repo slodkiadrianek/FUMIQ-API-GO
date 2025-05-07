@@ -5,15 +5,13 @@ import (
 	"FUMIQ_API/api/v1/routes"
 	"FUMIQ_API/config"
 	"FUMIQ_API/middleware"
+	"FUMIQ_API/repositories"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
-
-//TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.<
 
 func main() {
 	router := gin.Default()
@@ -23,28 +21,22 @@ func main() {
 		panic("Error loading .env file")
 	}
 	cacheService := config.ConnectToCache(envVariables.CacheLink)
-	logger := utils.Logger{}
+	logger := utils.NewLogger()
 	loggerService := logger.CreateLogger()
 	DbClient, err := config.Connect(envVariables.DatabaseLink)
 	if err != nil {
 		panic("Error connecting to database")
 	}
+	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
 	BaseService := services.BaseService{
 		DbClient: DbClient,
 		Logger:   &loggerService,
 		Caching:  cacheService,
 	}
-	authController := controllers.AuthController{Logger: loggerService}
+	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository)
+	authController := controllers.AuthController{Logger: loggerService, AuthService: AuthService}
 	AuthRoutes := routes.AuthRoutes{AuthController: &authController}
-
 	routesConfig := routes.SetupRoutes{AuthRoutes: &AuthRoutes}
-	//authMiddleware := middleware.AuthMiddleware{
-	//	Secret:  envVariables.JWTSecret,
-	//	Caching: cacheService,
-	//	Logger:  loggerService,
-	//	Ctx:     &gin.Context{},
-	//}
-
 	fmt.Println(BaseService)
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)

@@ -10,6 +10,10 @@ type Logger struct {
 	Logger zerolog.Logger
 }
 
+func NewLogger() Logger {
+	return Logger{}
+}
+
 func (l Logger) CreateLogger() Logger {
 	logDir := "./logs"
 	if _, err := os.Stat(logDir); os.IsNotExist(err) {

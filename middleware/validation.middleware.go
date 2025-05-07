@@ -23,7 +23,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 	}
 
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-	fmt.Println(string(bodyBytes))
 
 	var data T
 	if err := json.Unmarshal(bodyBytes, &data); err != nil {

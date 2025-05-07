@@ -5,6 +5,7 @@ import (
 	"FUMIQ_API/utils"
 	"context"
 	"encoding/json"
+	"fmt"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
@@ -18,21 +19,32 @@ type BaseService struct {
 }
 
 func (b *BaseService) InsertToDatabaseAndCache(ctx context.Context, cache string, data interface{},
-	collection string) error {
-	stringData, _ := json.Marshal(data)
-	err := b.Caching.SetData(ctx, cache, string(stringData), 1000)
-	if err != nil {
-		b.Logger.Error("Something went wrong during adding to data to cache")
-		err := models.NewError(400, "Cache", "Something went wrong during adding to data to cache")
-		return err
-	}
-	_, err = b.DbClient.Collection(collection).InsertOne(ctx, data)
+	collection string) (interface{}, error) {
+	insertResult, err := b.DbClient.Collection(collection).InsertOne(ctx, data)
 	if err != nil {
 		b.Logger.Error("Something went wrong during inserting to database")
-		err := models.NewError(400, "Database", "Something went wrong during inserting to database")
-		return err
+		return nil, models.NewError(400, "Database", "Something went wrong during inserting to database")
 	}
-	return nil
+	if doc, ok := data.(map[string]interface{}); ok {
+		if _, exists := doc["ID"]; !exists && insertResult.InsertedID != nil {
+			doc["ID"] = insertResult.InsertedID
+		}
+	}
+	fmt.Println("DATA", insertResult)
+	data = insertResult
+	stringData, err := json.Marshal(data)
+	if err != nil {
+		b.Logger.Error("Failed to marshal data for caching")
+		return nil, models.NewError(500, "Cache", "Failed to marshal data for caching")
+	}
+
+	err = b.Caching.SetData(ctx, cache, string(stringData), 1000)
+	if err != nil {
+		b.Logger.Error("Something went wrong during adding data to cache")
+		b.Logger.Error("Cache operation failed but database insert was successful")
+	}
+
+	return data, nil
 }
 
 func (b *BaseService) GetAllUserItems(ctx context.Context, cache string, userId string, collection string,

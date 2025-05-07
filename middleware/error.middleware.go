@@ -15,7 +15,6 @@ func ErrorMiddleware() gin.HandlerFunc {
 				var customErr *models.ErrorResponse
 				if errors.As(e.Err, &customErr) {
 					c.JSON(customErr.Code, gin.H{
-						"success": false,
 						"error": gin.H{
 							"category":    customErr.Category,
 							"description": customErr.Description,
