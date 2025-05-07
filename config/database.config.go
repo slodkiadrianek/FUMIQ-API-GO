@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-func connect(cfg Config) (*mongo.Database, error) {
+func Connect(DatabaseLink string) (*mongo.Database, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI(cfg.DatabaseLink)
+	clientOptions := options.Client().ApplyURI(DatabaseLink)
 
 	client, err := mongo.Connect(clientOptions)
 	if err != nil {

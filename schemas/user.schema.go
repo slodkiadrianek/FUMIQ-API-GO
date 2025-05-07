@@ -5,10 +5,11 @@ type LoginUser struct {
 	PasswordBody
 }
 type RegisterUser struct {
-	LoginUser
-	FirstName       string `json:"firstName" binding:"required"`
-	LastName        string `json:"lastName" binding:"required"`
-	ConfirmPassword string `json:"confirmPassword" binding:"required,min=8,max=32"`
+	Email           string `json:"email" opts:"required,email"`
+	FirstName       string `json:"firstName" opts:"required"`
+	LastName        string `json:"lastName" opts:"required"`
+	Password        string `json:"password" opts:"required,min=8,max=32"`
+	ConfirmPassword string `json:"confirmPassword" opts:"required,min=8,max=32,confirm=Password"`
 }
 
 type PasswordBody struct {
