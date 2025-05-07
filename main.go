@@ -24,6 +24,11 @@ func main() {
 	logger := utils.NewLogger()
 	loggerService := logger.CreateLogger()
 	DbClient, err := config.Connect(envVariables.DatabaseLink)
+	AuthMiddleware := middleware.AuthMiddleware{
+		Secret:  envVariables.JWTSecret,
+		Logger:  loggerService,
+		Caching: cacheService,
+	}
 	if err != nil {
 		panic("Error connecting to database")
 	}
@@ -33,7 +38,7 @@ func main() {
 		Logger:   &loggerService,
 		Caching:  cacheService,
 	}
-	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository)
+	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, &AuthMiddleware)
 	authController := controllers.AuthController{Logger: loggerService, AuthService: AuthService}
 	AuthRoutes := routes.AuthRoutes{AuthController: &authController}
 	routesConfig := routes.SetupRoutes{AuthRoutes: &AuthRoutes}

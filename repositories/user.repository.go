@@ -63,6 +63,7 @@ func (u *UserRepository) GetUser(ctx context.Context, userId string) (models.Use
 		err = json.Unmarshal([]byte(data), &user)
 		if err != nil {
 			u.Logger.Error("Failed to unmarshal user", err)
+			return models.User{}, models.NewError(400, "Cache", "Failed to unmarshal user")
 		}
 		return user, nil
 	}

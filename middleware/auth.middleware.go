@@ -16,19 +16,23 @@ type AuthMiddleware struct {
 	Secret  string
 	Logger  utils.Logger
 	Caching *config.CacheService
-	Ctx     *gin.Context
 }
 
 func (auth *AuthMiddleware) Sign(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user": user,
-		"exp":  time.Now().Add(time.Hour * 2).Unix(),
+		"userId":    user.ID.Hex(),
+		"email":     user.Email,
+		"firstName": user.FirstName,
+		"lastName":  user.LastName,
+		"exp":       time.Now().Add(2 * time.Hour).Unix(),
 	})
-	tokenString, err := token.SignedString(auth.Secret)
+
+	tokenString, err := token.SignedString([]byte(auth.Secret))
 	if err != nil {
-		auth.Logger.Error("error signing token", tokenString)
+		auth.Logger.Error("error signing token", err)
 		return "", err
 	}
+	fmt.Println("Token", tokenString)
 	return tokenString, nil
 }
 
@@ -39,7 +43,7 @@ func (auth *AuthMiddleware) Verify(c *gin.Context) {
 		err := models.NewError(401, "Authorization", "token is missing")
 		c.Error(err)
 	}
-	result, err := auth.Caching.ExistData(auth.Ctx, "blacklist:"+authHeader)
+	result, err := auth.Caching.ExistData(c, "blacklist:"+authHeader)
 	if err != nil {
 		auth.Logger.Error("error checking blacklist", authHeader)
 		err := models.NewError(401, "Authorization", "error occurred during cache checking ")
@@ -66,6 +70,7 @@ func (auth *AuthMiddleware) Verify(c *gin.Context) {
 		err := models.NewError(401, "Authorization", "token is invalid")
 		c.Error(err)
 	}
+
 	c.Next()
 }
 

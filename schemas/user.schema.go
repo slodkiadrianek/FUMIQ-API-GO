@@ -1,8 +1,8 @@
 package schemas
 
 type LoginUser struct {
-	Email string `json:"email" binding:"required,email"`
-	PasswordBody
+	Email    string `json:"email" opts:"required,email"`
+	Password string `json:"password" opts:"required,min=8,max=32"`
 }
 type RegisterUser struct {
 	Email           string `json:"email" opts:"required,email"`
@@ -13,7 +13,7 @@ type RegisterUser struct {
 }
 
 type PasswordBody struct {
-	Password string `json:"password" binding:"required,min=8,max=32"`
+	Password string `json:"password" opts:"required,min=8,max=32"`
 }
 type UserParam struct {
 	UserId string `json:"userId" binding:"required"`
