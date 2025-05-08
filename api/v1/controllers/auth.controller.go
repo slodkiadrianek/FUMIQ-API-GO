@@ -21,14 +21,28 @@ func (a *AuthController) Register(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	data, err := a.AuthService.RegisterUser(c, &user)
+	_, err = a.AuthService.RegisterUser(c, &user)
 	if err != nil {
 		a.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		c.Abort()
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"success": true, "data": gin.H{
-		"user": data,
-	}})
+	c.Status(http.StatusCreated)
+}
+
+func (a *AuthController) Login(c *gin.Context) {
+	var user schemas.LoginUser
+	err := c.BindJSON(&user)
+	if err != nil {
+		a.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	token, err := a.AuthService.LoginUser(c, &user)
+	if err != nil {
+		a.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

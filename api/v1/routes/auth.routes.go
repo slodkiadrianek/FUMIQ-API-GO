@@ -15,7 +15,7 @@ func (a *AuthRoutes) SetupAuthRoutes(router *gin.RouterGroup) {
 	authGroup := router.Group("/auth")
 	{
 		authGroup.POST("/register", middleware.ValidateRequestData[schemas.RegisterUser], a.AuthController.Register)
-		authGroup.POST("/login", middleware.ValidateRequestData[schemas.LoginUser])
+		authGroup.POST("/login", middleware.ValidateRequestData[schemas.LoginUser], a.AuthController.Login)
 		authGroup.GET("/check")
 		authGroup.POST("/logout")
 		authGroup.POST("/reset-password")
