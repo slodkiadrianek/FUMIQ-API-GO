@@ -23,8 +23,7 @@ func (a *AuthController) Register(c *gin.Context) {
 	}
 	_, err = a.AuthService.RegisterUser(c, &user)
 	if err != nil {
-		a.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 	c.Status(http.StatusCreated)
@@ -40,9 +39,12 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 	token, err := a.AuthService.LoginUser(c, &user)
 	if err != nil {
-		a.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func (a *AuthController) verify(c *gin.Context) {
+
 }

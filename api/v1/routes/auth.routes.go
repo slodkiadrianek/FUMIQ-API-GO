@@ -9,6 +9,7 @@ import (
 
 type AuthRoutes struct {
 	AuthController *controllers.AuthController
+	AuthMiddleware *middleware.AuthMiddleware
 }
 
 func (a *AuthRoutes) SetupAuthRoutes(router *gin.RouterGroup) {
@@ -16,7 +17,7 @@ func (a *AuthRoutes) SetupAuthRoutes(router *gin.RouterGroup) {
 	{
 		authGroup.POST("/register", middleware.ValidateRequestData[schemas.RegisterUser], a.AuthController.Register)
 		authGroup.POST("/login", middleware.ValidateRequestData[schemas.LoginUser], a.AuthController.Login)
-		authGroup.GET("/check")
+		authGroup.GET("/check", a.AuthMiddleware.Verify)
 		authGroup.POST("/logout")
 		authGroup.POST("/reset-password")
 		authGroup.POST("/reset-password/:token")

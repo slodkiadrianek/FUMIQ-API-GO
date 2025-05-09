@@ -68,9 +68,7 @@ func (a AuthService) LoginUser(ctx context.Context, user *schemas.LoginUser) (st
 		return "", err
 	}
 	var userFromDb models.User
-	fmt.Println(res)
 	err := res.Decode(&userFromDb)
-	fmt.Println(err)
 	if err != nil {
 		a.Logger.Error(err.Error())
 		return "", err

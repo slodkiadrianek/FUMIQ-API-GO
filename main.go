@@ -40,7 +40,7 @@ func main() {
 	}
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, &AuthMiddleware)
 	authController := controllers.AuthController{Logger: loggerService, AuthService: AuthService}
-	AuthRoutes := routes.AuthRoutes{AuthController: &authController}
+	AuthRoutes := routes.AuthRoutes{AuthController: &authController, AuthMiddleware: &AuthMiddleware}
 	routesConfig := routes.SetupRoutes{AuthRoutes: &AuthRoutes}
 	fmt.Println(BaseService)
 	router.Use(middleware.ErrorMiddleware())

@@ -42,6 +42,7 @@ func (auth *AuthMiddleware) Verify(c *gin.Context) {
 		auth.Logger.Error("token is missing during verification of request  with data", c.Request.URL)
 		err := models.NewError(401, "Authorization", "token is missing")
 		c.Error(err)
+		return
 	}
 	result, err := auth.Caching.ExistData(c, "blacklist:"+authHeader)
 	if err != nil {
@@ -57,7 +58,10 @@ func (auth *AuthMiddleware) Verify(c *gin.Context) {
 		}})
 	}
 
-	token, err := jwt.Parse(strings.Split(authHeader, " ")[1], func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(auth.Secret, &jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return auth.Secret, nil
 	})
 	if err != nil {
