@@ -4,13 +4,14 @@ import "github.com/gin-gonic/gin"
 
 type SetupRoutes struct {
 	AuthRoutes *AuthRoutes
+	UserRoutes *UserRoutes
 }
 
 func (s *SetupRoutes) SetupRoutes(router *gin.Engine) {
 	routesGroup := router.Group("/api/v1")
 
 	s.AuthRoutes.SetupAuthRoutes(routesGroup)
-	SetupUserRoutes(routesGroup)
+	s.UserRoutes.SetupUserRoutes(routesGroup)
 	SetupQuizRoutes(routesGroup)
 
 }

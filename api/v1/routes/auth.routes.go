@@ -4,6 +4,7 @@ import (
 	"FUMIQ_API/api/v1/controllers"
 	"FUMIQ_API/middleware"
 	"FUMIQ_API/schemas"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,13 +13,20 @@ type AuthRoutes struct {
 	AuthMiddleware *middleware.AuthMiddleware
 }
 
+func NewAuthRoutes(authController *controllers.AuthController, authMiddleware *middleware.AuthMiddleware) *AuthRoutes {
+	return &AuthRoutes{
+		AuthController: authController,
+		AuthMiddleware: authMiddleware,
+	}
+}
+
 func (a *AuthRoutes) SetupAuthRoutes(router *gin.RouterGroup) {
 	authGroup := router.Group("/auth")
 	{
 		authGroup.POST("/register", middleware.ValidateRequestData[schemas.RegisterUser], a.AuthController.Register)
 		authGroup.POST("/login", middleware.ValidateRequestData[schemas.LoginUser], a.AuthController.Login)
-		authGroup.GET("/check", a.AuthMiddleware.Verify)
-		authGroup.POST("/logout")
+		authGroup.GET("/check", a.AuthMiddleware.Verify, a.AuthController.Verify)
+		authGroup.POST("/logout", a.AuthMiddleware.BlackList, a.AuthController.Logout)
 		authGroup.POST("/reset-password")
 		authGroup.POST("/reset-password/:token")
 		authGroup.GET("/activate/:token")

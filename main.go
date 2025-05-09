@@ -8,9 +8,9 @@ import (
 	"FUMIQ_API/repositories"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -24,28 +24,25 @@ func main() {
 	logger := utils.NewLogger()
 	loggerService := logger.CreateLogger()
 	DbClient, err := config.Connect(envVariables.DatabaseLink)
+	if err != nil {
+		panic("Error connecting to database")
+	}
 	AuthMiddleware := middleware.AuthMiddleware{
 		Secret:  envVariables.JWTSecret,
 		Logger:  loggerService,
 		Caching: cacheService,
 	}
-	if err != nil {
-		panic("Error connecting to database")
-	}
 	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
-	BaseService := services.BaseService{
-		DbClient: DbClient,
-		Logger:   &loggerService,
-		Caching:  cacheService,
-	}
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, &AuthMiddleware)
-	authController := controllers.AuthController{Logger: loggerService, AuthService: AuthService}
-	AuthRoutes := routes.AuthRoutes{AuthController: &authController, AuthMiddleware: &AuthMiddleware}
-	routesConfig := routes.SetupRoutes{AuthRoutes: &AuthRoutes}
-	fmt.Println(BaseService)
+	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, &AuthMiddleware)
+	authController := controllers.NewAuthController(loggerService, AuthService)
+	userController := controllers.NewUserController(loggerService, UserService)
+	AuthRoutes := routes.NewAuthRoutes(authController, &AuthMiddleware)
+	UserRoutes := routes.NewUserRoutes(userController, &AuthMiddleware)
+	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes}
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)
-	//gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
 	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 	if err != nil {
 		log.Fatalf("Failed to set trusted proxies: %v", err)

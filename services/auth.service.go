@@ -17,17 +17,17 @@ import (
 
 type AuthService struct {
 	Logger         *utils.Logger
-	AuthRepository *repositories.UserRepository
+	UserRepository *repositories.UserRepository
 	DbClient       *mongo.Database
 	AuthMiddleware *middleware.AuthMiddleware
 }
 
-func NewAuthService(dbClient *mongo.Database, logger *utils.Logger, authRepository *repositories.UserRepository,
+func NewAuthService(dbClient *mongo.Database, logger *utils.Logger, userRepository *repositories.UserRepository,
 	authMiddleware *middleware.AuthMiddleware) *AuthService {
 	return &AuthService{
 		DbClient:       dbClient,
 		Logger:         logger,
-		AuthRepository: authRepository,
+		UserRepository: userRepository,
 		AuthMiddleware: authMiddleware,
 	}
 }
@@ -52,7 +52,7 @@ func (a AuthService) RegisterUser(ctx context.Context, user *schemas.RegisterUse
 	}
 	user.Password = string(bytes)
 
-	insertRes, err := a.AuthRepository.InsertUser(ctx, user)
+	insertRes, err := a.UserRepository.InsertUser(ctx, user)
 	if err != nil {
 		a.Logger.Error(err.Error())
 		return models.User{}, err

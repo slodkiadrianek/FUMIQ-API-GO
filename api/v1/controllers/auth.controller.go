@@ -4,13 +4,21 @@ import (
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
 	Logger      utils.Logger
 	AuthService *services.AuthService
+}
+
+func NewAuthController(logger utils.Logger, authService *services.AuthService) *AuthController {
+	return &AuthController{
+		Logger:      logger,
+		AuthService: authService,
+	}
 }
 
 func (a *AuthController) Register(c *gin.Context) {
@@ -45,6 +53,11 @@ func (a *AuthController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (a *AuthController) verify(c *gin.Context) {
+func (a *AuthController) Verify(c *gin.Context) {
+	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"user": gin.H{"id": c.GetString("userId"),
+		"firstName": c.GetString("firstName"), "lastName": c.GetString("lastName")}}})
+}
 
+func (a *AuthController) Logout(c *gin.Context) {
+	c.JSON(http.StatusNoContent, gin.H{})
 }

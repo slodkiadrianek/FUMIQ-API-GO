@@ -1,11 +1,27 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"FUMIQ_API/api/v1/controllers"
+	"FUMIQ_API/middleware"
+	"github.com/gin-gonic/gin"
+)
 
-func SetupUserRoutes(router *gin.RouterGroup) {
+type UserRoutes struct {
+	UserController *controllers.UserController
+	AuthMiddleware *middleware.AuthMiddleware
+}
+
+func NewUserRoutes(userController *controllers.UserController, authMiddleware *middleware.AuthMiddleware) *UserRoutes {
+	return &UserRoutes{
+		UserController: userController,
+		AuthMiddleware: authMiddleware,
+	}
+}
+
+func (u *UserRoutes) SetupUserRoutes(router *gin.RouterGroup) {
 	userGroup := router.Group("/users")
 	{
-		userGroup.GET("/:userId")
+		userGroup.GET("/:userId", u.AuthMiddleware.Verify)
 		userGroup.PATCH("/:userId")
 		userGroup.PUT("/:userId")
 		userGroup.DELETE("/:userId")
