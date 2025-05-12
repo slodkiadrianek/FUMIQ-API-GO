@@ -9,10 +9,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"golang.org/x/crypto/bcrypt"
-	_ "golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
@@ -23,7 +23,8 @@ type AuthService struct {
 }
 
 func NewAuthService(dbClient *mongo.Database, logger *utils.Logger, userRepository *repositories.UserRepository,
-	authMiddleware *middleware.AuthMiddleware) *AuthService {
+	authMiddleware *middleware.AuthMiddleware,
+) *AuthService {
 	return &AuthService{
 		DbClient:       dbClient,
 		Logger:         logger,
@@ -80,5 +81,9 @@ func (a AuthService) LoginUser(ctx context.Context, user *schemas.LoginUser) (st
 		return "", err
 	}
 	token, err := a.AuthMiddleware.Sign(userFromDb)
+	if err != nil {
+		a.Logger.Error(err.Error())
+		return "", err
+	}
 	return token, nil
 }

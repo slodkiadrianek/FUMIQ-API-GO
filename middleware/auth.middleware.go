@@ -23,6 +23,14 @@ type userClaims struct {
 	jwt.RegisteredClaims
 }
 
+func NewAuthMiddleware(secret string, logger utils.Logger, caching *config.CacheService) *AuthMiddleware {
+	return &AuthMiddleware{
+		Secret:  secret,
+		Logger:  logger,
+		Caching: caching,
+	}
+}
+
 func (auth *AuthMiddleware) Sign(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":        user.ID.Hex(),

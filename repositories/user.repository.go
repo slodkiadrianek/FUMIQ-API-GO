@@ -7,7 +7,9 @@ import (
 	"FUMIQ_API/utils"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -67,10 +69,17 @@ func (u *UserRepository) GetUser(ctx context.Context, userId string) (models.Use
 		}
 		return user, nil
 	}
-	res, err := u.DbClient.Collection("Users").Find(ctx, bson.D{{"ID", userId}})
+	fmt.Println("USER ID", userId)
+	objectID, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
-		u.Logger.Error("Something went wrong during inserting to database")
-		return models.User{}, models.NewError(400, "Database", "Something went wrong during inserting to database")
+		u.Logger.Error("Failed to convert user id to object id", err)
+		return models.User{}, models.NewError(400, "Database", "Failed to convert user id to object id")
+	}
+	res := u.DbClient.Collection("Users").FindOne(ctx, bson.D{{"_id", objectID}})
+	if errors.Is(res.Err(), mongo.ErrNoDocuments) {
+		fmt.Println(res.Err())
+		u.Logger.Error("Something went wrong during taking data from database")
+		return models.User{}, models.NewError(400, "Database", "Something went wrong during taking data from database")
 	}
 	var user models.User
 	err = res.Decode(&user)

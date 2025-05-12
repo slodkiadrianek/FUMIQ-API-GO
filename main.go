@@ -27,18 +27,14 @@ func main() {
 	if err != nil {
 		panic("Error connecting to database")
 	}
-	AuthMiddleware := middleware.AuthMiddleware{
-		Secret:  envVariables.JWTSecret,
-		Logger:  loggerService,
-		Caching: cacheService,
-	}
+	AuthMiddleware := middleware.NewAuthMiddleware(envVariables.JWTSecret, loggerService, cacheService)
 	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
-	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, &AuthMiddleware)
-	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, &AuthMiddleware)
+	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, AuthMiddleware)
+	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, AuthMiddleware)
 	authController := controllers.NewAuthController(loggerService, AuthService)
 	userController := controllers.NewUserController(loggerService, UserService)
-	AuthRoutes := routes.NewAuthRoutes(authController, &AuthMiddleware)
-	UserRoutes := routes.NewUserRoutes(userController, &AuthMiddleware)
+	AuthRoutes := routes.NewAuthRoutes(authController, AuthMiddleware)
+	UserRoutes := routes.NewUserRoutes(userController, AuthMiddleware)
 	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes}
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)

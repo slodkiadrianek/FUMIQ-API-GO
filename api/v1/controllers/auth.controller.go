@@ -4,6 +4,7 @@ import (
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -54,6 +55,7 @@ func (a *AuthController) Login(c *gin.Context) {
 }
 
 func (a *AuthController) Verify(c *gin.Context) {
+	fmt.Println(c.GetString("userId"))
 	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"user": gin.H{"id": c.GetString("userId"),
 		"firstName": c.GetString("firstName"), "lastName": c.GetString("lastName")}}})
 }

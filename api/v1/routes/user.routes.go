@@ -21,8 +21,8 @@ func NewUserRoutes(userController *controllers.UserController, authMiddleware *m
 func (u *UserRoutes) SetupUserRoutes(router *gin.RouterGroup) {
 	userGroup := router.Group("/users")
 	{
-		userGroup.GET("/:userId", u.AuthMiddleware.Verify)
-		userGroup.PATCH("/:userId")
+		userGroup.GET("/:userId", u.AuthMiddleware.Verify, u.UserController.GetUser)
+		userGroup.PATCH("/:userId", u.AuthMiddleware.Verify, u.UserController.ChangePassword)
 		userGroup.PUT("/:userId")
 		userGroup.DELETE("/:userId")
 		userGroup.GET("/:userId/quizzes")

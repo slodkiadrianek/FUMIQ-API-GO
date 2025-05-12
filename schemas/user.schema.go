@@ -20,7 +20,7 @@ type UserParam struct {
 }
 
 type ChangePassword struct {
-	PasswordBody
+	OldPassword     string `json:"oldPassword" opts:"required,min=8,max=32"`
 	NewPassword     string `json:"newPassword" binding:"required,min=8,max=32"`
 	ConfirmPassword string `json:"confirmPassword" binding:"required,min=8,max=32"`
 }
