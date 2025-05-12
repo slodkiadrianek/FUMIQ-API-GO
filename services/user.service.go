@@ -62,3 +62,23 @@ func (u *UserService) ChangePassword(ctx context.Context, userId string, passwor
 	}
 	return nil
 }
+
+func (u *UserService) DeleteUser(ctx context.Context, userId string, password schemas.PasswordBody) error {
+	user, err := u.UserRepository.GetUser(ctx, userId)
+	if err != nil {
+		u.Logger.Error(err.Error())
+		return err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password.Password))
+	if err != nil {
+		u.Logger.Error(err.Error())
+		return err
+	}
+	err = u.UserRepository.DeleteUser(ctx, userId)
+	if err != nil {
+		u.Logger.Error(err.Error())
+		return err
+	}
+	return nil
+
+}

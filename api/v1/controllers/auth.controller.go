@@ -43,7 +43,12 @@ func (a *AuthController) Login(c *gin.Context) {
 	err := c.BindJSON(&user)
 	if err != nil {
 		a.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
 		return
 	}
 	token, err := a.AuthService.LoginUser(c, &user)

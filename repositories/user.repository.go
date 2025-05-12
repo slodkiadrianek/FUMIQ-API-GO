@@ -69,7 +69,6 @@ func (u *UserRepository) GetUser(ctx context.Context, userId string) (models.Use
 		}
 		return user, nil
 	}
-	fmt.Println("USER ID", userId)
 	objectID, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		u.Logger.Error("Failed to convert user id to object id", err)
@@ -98,4 +97,18 @@ func (u *UserRepository) GetUser(ctx context.Context, userId string) (models.Use
 		u.Logger.Error("Cache operation failed but database insert was successful")
 	}
 	return user, nil
+}
+
+func (u *UserRepository) DeleteUser(ctx context.Context, userId string) error {
+	objectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		u.Logger.Error("Failed to convert user id to object id", err)
+		return models.NewError(400, "Database", "Failed to convert user id to object id")
+	}
+	_, err = u.DbClient.Collection("Users").DeleteOne(ctx, bson.D{{"_id", objectId}})
+	if err != nil {
+		u.Logger.Error("Failed to delete user from database")
+		return models.NewError(400, "Database", "Failed to delete user from database")
+	}
+	return nil
 }

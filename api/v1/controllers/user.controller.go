@@ -36,10 +36,36 @@ func (u *UserController) ChangePassword(c *gin.Context) {
 	err := c.BindJSON(passwords)
 	if err != nil {
 		u.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
 		return
 	}
 	err = u.UserService.ChangePassword(c, userId, passwords)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusNoContent, gin.H{})
+}
+
+func (u *UserController) DeleteUser(c *gin.Context) {
+	userId := c.Param("userId")
+	var password schemas.PasswordBody
+	err := c.BindJSON(password)
+	if err != nil {
+		u.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+	}
+	err = u.UserService.DeleteUser(c, userId, password)
 	if err != nil {
 		c.Error(err)
 		return

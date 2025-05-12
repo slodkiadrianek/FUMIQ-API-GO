@@ -83,7 +83,6 @@ func (auth *AuthMiddleware) Verify(c *gin.Context) {
 
 	if err != nil {
 		auth.Logger.Error("token parsing error", err.Error())
-		fmt.Println("Token parsing error details:", err.Error())
 		err := models.NewError(401, "Authorization", "token parsing error")
 		c.Error(err)
 		c.Abort()
@@ -122,7 +121,6 @@ func (auth *AuthMiddleware) BlackList(c *gin.Context) {
 	})
 	if err != nil {
 		auth.Logger.Error("token parsing error", err.Error())
-		fmt.Println("Token parsing error details:", err.Error())
 		err := models.NewError(401, "Authorization", "token parsing error")
 		c.Error(err)
 		c.Abort()

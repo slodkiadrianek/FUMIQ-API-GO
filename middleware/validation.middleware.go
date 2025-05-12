@@ -30,7 +30,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 		c.Abort()
 		return
 	}
-	fmt.Println(data)
 	val := reflect.ValueOf(data)
 	typ := reflect.TypeOf(data)
 	var errorStack []string
@@ -45,7 +44,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 		} else {
 			continue
 		}
-		fmt.Println(options)
 		for _, option := range options {
 			var optionValueInt int
 			var optionValueStr string
@@ -60,7 +58,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 				}
 			}
 			if strings.Contains(option, "max") {
-				fmt.Println(option)
 				optionValueInt, err = strconv.Atoi(strings.Split(option, "=")[1])
 				if err != nil {
 					c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": err.Error()})
@@ -83,7 +80,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 				if val.Field(i).IsZero() {
 					errorStack = append(errorStack, fmt.Sprintf("%s is required", fieldName))
 				}
-				fmt.Println(typ.Field(i).Name)
 			case "min":
 				if len(value) < optionValueInt {
 					errorStack = append(errorStack, fmt.Sprintf("%s must be at least %d characters", fieldName, optionValueInt))
@@ -100,7 +96,6 @@ func ValidateRequestData[T any](c *gin.Context) {
 				}
 
 			case "confirm":
-				fmt.Println(optionValueStr)
 				confirmValue := val.FieldByName(optionValueStr).String()
 				if value != confirmValue {
 					errorStack = append(errorStack, fmt.Sprintf("%s value must match with %s", fieldName, optionValueStr))
@@ -118,6 +113,5 @@ func ValidateRequestData[T any](c *gin.Context) {
 		c.Abort()
 		return
 	}
-	//}
 	c.Next()
 }
