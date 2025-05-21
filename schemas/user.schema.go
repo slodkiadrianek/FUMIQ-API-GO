@@ -1,36 +1,40 @@
 package schemas
 
+import (
+	"strings"
+
+	z "github.com/Oudwins/zog"
+)
+
 type LoginUser struct {
-	Email    string `json:"email" opts:"required,email"`
-	Password string `json:"password" opts:"required,min=8,max=32"`
+	Email    string `json:"email"`
+	Password string `json:"password" `
 }
 type RegisterUser struct {
-	Email           string `json:"email" opts:"required,email"`
-	FirstName       string `json:"firstName" opts:"required"`
-	LastName        string `json:"lastName" opts:"required"`
-	Password        string `json:"password" opts:"required,min=8,max=32"`
-	ConfirmPassword string `json:"confirmPassword" opts:"required,min=8,max=32,confirm=Password"`
+	Email           string `json:"email" `
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName" `
+	Password        string `json:"password" `
+	ConfirmPassword string `json:"confirmPassword" `
 }
 
-type PasswordBody struct {
-	Password string `json:"password" opts:"required,min=8,max=32"`
-}
-type UserParam struct {
-	UserId string `json:"userId" binding:"required"`
-}
+var RegisterSchema = z.Struct(z.Schema{
+	"firstName": z.String().Required(),
+	"lastName":  z.String().Required(),
+	"email": z.String().Required().Email().Transform(func(val *string, ctx z.Ctx) error {
+		*val = strings.ToLower(*val)
+		*val = strings.TrimSpace(*val)
+		return nil
+	}),
+	"password":        z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+	"confirmPassword": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+})
 
-type ChangePassword struct {
-	OldPassword     string `json:"oldPassword" opts:"required,min=8,max=32"`
-	NewPassword     string `json:"newPassword" binding:"required,min=8,max=32"`
-	ConfirmPassword string `json:"confirmPassword" binding:"required,min=8,max=32"`
-}
-
-type UpdateUser struct {
-	Email     string `json:"email" binding:"required,email"`
-	FirstName string `json:"firstName" binding:"required"`
-	LastName  string `json:"lastName" binding:"required"`
-}
-
-type Token struct {
-	Token string `json:"token" binding:"required"`
-}
+var LoginSchema = z.Struct(z.Schema{
+	"emial": z.String().Required().Email().Transform(func(val *string, ctx z.Ctx) error {
+		*val = strings.ToLower(*val)
+		*val = strings.TrimSpace(*val)
+		return nil
+	}),
+	"password": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+})

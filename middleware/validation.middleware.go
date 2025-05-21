@@ -1,19 +1,17 @@
 package middleware
 
 import (
+	"FUMIQ_API/schemas"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"reflect"
-	"regexp"
-	"strconv"
-	"strings"
 
+	z "github.com/Oudwins/zog"
 	"github.com/gin-gonic/gin"
 )
 
+<<<<<<< HEAD
 func ValidateRequestData[T any](c *gin.Context) {
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
@@ -105,13 +103,44 @@ func ValidateRequestData[T any](c *gin.Context) {
 				if !r.MatchString(value) {
 					errorStack = append(errorStack, fmt.Sprintf("%s must pass regex check", fieldName))
 				}
+=======
+func ValidateRequestData[T any](schema *z.StructSchema) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		bodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Failed to read request body"})
+			c.Abort()
+			return
+		}
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		var data T
+		if err := json.Unmarshal(bodyBytes, &data); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": err.Error()})
+			c.Abort()
+			return
+		}
+		if v, ok := any(data).(schemas.RegisterUser); ok {
+			if v.Password != v.ConfirmPassword {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Password and Confirm Password do not match"})
+				c.Abort()
+				return
+>>>>>>> e50232b (VALIDATION)
 			}
 		}
+		errsMaps := schema.Validate(data)
+		if errsMaps != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Invalid request data", "errors": errsMaps["$root"]})
+		}
+
+		c.Next()
 	}
+<<<<<<< HEAD
 	if len(errorStack) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": errorStack})
 		c.Abort()
 		return
 	}
 	c.Next()
+=======
+>>>>>>> e50232b (VALIDATION)
 }

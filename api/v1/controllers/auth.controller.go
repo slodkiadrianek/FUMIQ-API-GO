@@ -35,7 +35,7 @@ func (a *AuthController) Register(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H{})
 }
 
 func (a *AuthController) Login(c *gin.Context) {
@@ -61,8 +61,10 @@ func (a *AuthController) Login(c *gin.Context) {
 
 func (a *AuthController) Verify(c *gin.Context) {
 	fmt.Println(c.GetString("userId"))
-	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"user": gin.H{"id": c.GetString("userId"),
-		"firstName": c.GetString("firstName"), "lastName": c.GetString("lastName")}}})
+	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"user": gin.H{
+		"id":        c.GetString("userId"),
+		"firstName": c.GetString("firstName"), "lastName": c.GetString("lastName"),
+	}}})
 }
 
 func (a *AuthController) Logout(c *gin.Context) {
