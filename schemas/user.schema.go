@@ -1,6 +1,7 @@
 package schemas
 
 import (
+	"errors"
 	"strings"
 
 	z "github.com/Oudwins/zog"
@@ -16,6 +17,26 @@ type RegisterUser struct {
 	LastName        string `json:"lastName" `
 	Password        string `json:"password" `
 	ConfirmPassword string `json:"confirmPassword" `
+}
+
+func (r *RegisterUser) Validate() (error, z.ZogIssueMap) {
+	if r.Password != r.ConfirmPassword {
+		err := errors.New("Password and ConfirmPassword must match")
+		return err, nil
+	}
+	errMap := RegisterSchema.Validate(r)
+	if errMap != nil {
+		return nil, errMap
+	}
+	return nil, nil
+}
+
+func (l *LoginUser) Validate() z.ZogIssueMap {
+	errMap := LoginSchema.Validate(l)
+	if errMap != nil {
+		return errMap
+	}
+	return nil
 }
 
 var RegisterSchema = z.Struct(z.Schema{
