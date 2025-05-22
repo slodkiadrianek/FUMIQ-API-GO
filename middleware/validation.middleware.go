@@ -47,6 +47,7 @@ func ValidateRequestData[T any](c *gin.Context) {
 		for _, option := range options {
 			var optionValueInt int
 			var optionValueStr string
+    
 
 			if strings.Contains(option, "min") {
 				optionValueInt, err = strconv.Atoi(strings.Split(option, "=")[1])
