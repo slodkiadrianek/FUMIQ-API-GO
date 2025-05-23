@@ -19,6 +19,24 @@ type RegisterUser struct {
 	ConfirmPassword string `json:"confirmPassword" `
 }
 
+type ChangePassword struct {
+	ConfirmPassword string `json:"confirmPassword"`
+	NewPassword     string `json:"newPassword"`
+	OldPassword     string `json:"oldPassword"`
+}
+
+func (c *ChangePassword) Validate()(error,z.ZogIssueMap){
+  
+}
+
+type DeleteUser struct {
+	Password string `json:"password"`
+}
+type ResetPassword struct {
+	NewPassword     string `json:"newPassword"`
+	ConfirmPassword string `json:"confirmPassword"`
+}
+
 func (r *RegisterUser) Validate() (error, z.ZogIssueMap) {
 	if r.Password != r.ConfirmPassword {
 		err := errors.New("Password and ConfirmPassword must match")
@@ -31,12 +49,12 @@ func (r *RegisterUser) Validate() (error, z.ZogIssueMap) {
 	return nil, nil
 }
 
-func (l *LoginUser) Validate() z.ZogIssueMap {
+func (l *LoginUser) Validate() (error, z.ZogIssueMap) {
 	errMap := LoginSchema.Validate(l)
 	if errMap != nil {
-		return errMap
+		return nil, errMap
 	}
-	return nil
+	return nil, nil
 }
 
 var RegisterSchema = z.Struct(z.Schema{
@@ -59,3 +77,5 @@ var LoginSchema = z.Struct(z.Schema{
 	}),
 	"password": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
 })
+
+var

@@ -54,7 +54,7 @@ func (u *UserController) ChangePassword(c *gin.Context) {
 
 func (u *UserController) DeleteUser(c *gin.Context) {
 	userId := c.Param("userId")
-	var password schemas.PasswordBody
+	var password schemas.DeleteUser
 	err := c.BindJSON(password)
 	if err != nil {
 		u.Logger.Error(err.Error())
