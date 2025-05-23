@@ -11,7 +11,7 @@ import (
 )
 
 type validate interface {
-	Validate() (error, z.ZogIssueMap)
+	Validate() (z.ZogIssueMap, error)
 }
 
 func ValidateRequestData[T validate]() gin.HandlerFunc {
@@ -29,7 +29,7 @@ func ValidateRequestData[T validate]() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		err, errMaps := data.Validate()
+		errMaps, err := data.Validate()
 		if errMaps != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": errMaps["$root"]})
 		}

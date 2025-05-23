@@ -3,6 +3,8 @@ package routes
 import (
 	"FUMIQ_API/api/v1/controllers"
 	"FUMIQ_API/middleware"
+	"FUMIQ_API/schemas"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,9 +24,9 @@ func (u *UserRoutes) SetupUserRoutes(router *gin.RouterGroup) {
 	userGroup := router.Group("/users")
 	{
 		userGroup.GET("/:userId", u.AuthMiddleware.Verify, u.UserController.GetUser)
-		userGroup.PATCH("/:userId", u.AuthMiddleware.Verify, u.UserController.ChangePassword)
-		userGroup.PUT("/:userId")
-		userGroup.DELETE("/:userId")
+		userGroup.PATCH("/:userId", middleware.ValidateRequestData[*schemas.ChangePassword](), u.AuthMiddleware.Verify, u.UserController.ChangePassword)
+		userGroup.PUT("/:userId", middleware.ValidateRequestData[*schemas.UpdateUser](), u.UserController.UpdateUser)
+		userGroup.DELETE("/:userId", middleware.ValidateRequestData[*schemas.DeleteUser](), u.AuthMiddleware.Verify, u.UserController.DeleteUser)
 		userGroup.GET("/:userId/quizzes")
 		userGroup.POST("/:userId/sessions")
 		userGroup.GET("/:userId/sessions/:sessionId")

@@ -19,43 +19,92 @@ type RegisterUser struct {
 	ConfirmPassword string `json:"confirmPassword" `
 }
 
+func (r *RegisterUser) Validate() (z.ZogIssueMap, error) {
+	if r.Password != r.ConfirmPassword {
+		err := errors.New("password and ConfirmPassword must match")
+		return nil, err
+	}
+	errMap := RegisterSchema.Validate(r)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
 type ChangePassword struct {
 	ConfirmPassword string `json:"confirmPassword"`
 	NewPassword     string `json:"newPassword"`
 	OldPassword     string `json:"oldPassword"`
 }
 
-func (c *ChangePassword) Validate()(error,z.ZogIssueMap){
-  
+func (c *ChangePassword) Validate() (z.ZogIssueMap, error) {
+	errMap := DeleteUserSchema.Validate(c)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
 }
 
 type DeleteUser struct {
 	Password string `json:"password"`
 }
+
+func (d *DeleteUser) Validate() (z.ZogIssueMap, error) {
+	errMap := DeleteUserSchema.Validate(d)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
 type ResetPassword struct {
-	NewPassword     string `json:"newPassword"`
+	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirmPassword"`
 }
 
-func (r *RegisterUser) Validate() (error, z.ZogIssueMap) {
+func (r *ResetPassword) Validate() (z.ZogIssueMap, error) {
 	if r.Password != r.ConfirmPassword {
-		err := errors.New("Password and ConfirmPassword must match")
-		return err, nil
+		err := errors.New("password and ConfirmPassword must match")
+		return nil, err
 	}
-	errMap := RegisterSchema.Validate(r)
+	errMap := ResetPasswordSchema.Validate(r)
 	if errMap != nil {
-		return nil, errMap
+		return errMap, nil
 	}
 	return nil, nil
 }
 
-func (l *LoginUser) Validate() (error, z.ZogIssueMap) {
+func (l *LoginUser) Validate() (z.ZogIssueMap, error) {
 	errMap := LoginSchema.Validate(l)
 	if errMap != nil {
-		return nil, errMap
+		return errMap, nil
 	}
 	return nil, nil
 }
+
+type UpdateUser struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email"`
+}
+
+func (u *UpdateUser) Validate() (z.ZogIssueMap, error) {
+	errMap := UpdateUserSchema.Validate(u)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
+var UpdateUserSchema = z.Struct(z.Schema{
+	"fistName": z.String().Required(),
+	"lastName": z.String().Required(),
+	"email": z.String().Required().Email().Transform(func(val *string, ctx z.Ctx) error {
+		*val = strings.ToLower(*val)
+		*val = strings.TrimSpace(*val)
+		return nil
+	}),
+})
 
 var RegisterSchema = z.Struct(z.Schema{
 	"firstName": z.String().Required(),
@@ -78,4 +127,11 @@ var LoginSchema = z.Struct(z.Schema{
 	"password": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
 })
 
-var
+var DeleteUserSchema = z.Struct(z.Schema{
+	"password": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+})
+
+var ResetPasswordSchema = z.Struct(z.Schema{
+	"password":        z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+	"confirmPassword": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
+})
