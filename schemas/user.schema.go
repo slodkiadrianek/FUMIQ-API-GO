@@ -7,6 +7,22 @@ import (
 	z "github.com/Oudwins/zog"
 )
 
+type UserId struct {
+	UserId string `json:"userId"`
+}
+
+func (u *UserId) Validate() (z.ZogIssueMap, error) {
+	errMap := UserIdSchema.Validate(u)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
+var UserIdSchema = z.Struct(z.Schema{
+	"userId": z.String().Required(),
+})
+
 type LoginUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password" `

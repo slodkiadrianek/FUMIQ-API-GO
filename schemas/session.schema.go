@@ -2,9 +2,21 @@ package schemas
 
 import z "github.com/Oudwins/zog"
 
-type SessionParams struct {
-	SessionId string `json:"sessionId" binding:"required"`
+type SessionId struct {
+	SessionId string `json:"sessionId"`
 }
+
+func (s *SessionId) Validate() (z.ZogIssueMap, error) {
+	errMap := JoinQuizSchema.Validate(s)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
+var SessionIdSchema = z.Struct(z.Schema{
+	"sessionId": z.String().Required(),
+})
 
 type JoinQuiz struct {
 	Code string `json:"code"`
