@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -109,6 +111,28 @@ func (u *UserRepository) DeleteUser(ctx context.Context, userId string) error {
 	if err != nil {
 		u.Logger.Error("Failed to delete user from database")
 		return models.NewError(400, "Database", "Failed to delete user from database")
+	}
+	return nil
+}
+
+func (u *UserRepository) UpdateUser(ctx context.Context, userId string, updateUserData schemas.UpdateUser) error {
+	objectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		u.Logger.Error("Failed to convert user id to object id", err)
+		return models.NewError(400, "Database", "Failed to convert user id to object id")
+	}
+	updateDocument := bson.D{
+		{"$set", bson.D{
+			{"firstName", updateUserData.FirstName},
+			{"lastName", updateUserData.LastName},
+			{"email", updateUserData.Email},
+			{"updatedAt", time.Now()},
+		}},
+	}
+	_, err = u.DbClient.Collection("Users").UpdateOne(ctx, bson.D{{"_id", objectId}}, updateDocument)
+	if err != nil {
+		u.Logger.Error("Failed to update user", userId)
+		return models.NewError(400, "Database", "Failed to update user")
 	}
 	return nil
 }

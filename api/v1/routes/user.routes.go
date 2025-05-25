@@ -3,6 +3,8 @@ package routes
 import (
 	"FUMIQ_API/api/v1/controllers"
 	"FUMIQ_API/middleware"
+	"FUMIQ_API/schemas"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,15 +23,15 @@ func NewUserRoutes(userController *controllers.UserController, authMiddleware *m
 func (u *UserRoutes) SetupUserRoutes(router *gin.RouterGroup) {
 	userGroup := router.Group("/users")
 	{
-		userGroup.GET("/:userId", u.AuthMiddleware.Verify, u.UserController.GetUser)
-		userGroup.PATCH("/:userId", u.AuthMiddleware.Verify, u.UserController.ChangePassword)
-		userGroup.PUT("/:userId")
-		userGroup.DELETE("/:userId")
-		userGroup.GET("/:userId/quizzes")
-		userGroup.POST("/:userId/sessions")
-		userGroup.GET("/:userId/sessions/:sessionId")
-		userGroup.PATCH("/:userId/sessions/:sessionId")
-		userGroup.GET("/:userId/sessions/:sessionId/results")
+		userGroup.GET("/:userId", u.AuthMiddleware.Verify, middleware.ValidateRequestData[*schemas.UserId]("params"), u.UserController.GetUser)
+		userGroup.PATCH("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.ChangePassword]("body"), u.AuthMiddleware.Verify, u.UserController.ChangePassword)
+		userGroup.PUT("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.UpdateUser]("body"), u.UserController.UpdateUser)
+		userGroup.DELETE("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.DeleteUser]("body"), u.AuthMiddleware.Verify, u.UserController.DeleteUser)
+		userGroup.GET("/:userId/quizzes", middleware.ValidateRequestData[*schemas.UserId]("params"))
+		userGroup.POST("/:userId/sessions", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
+		userGroup.GET("/:userId/sessions/:sessionId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
+		userGroup.PATCH("/:userId/sessions/:sessionId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
+		userGroup.GET("/:userId/sessions/:sessionId/results", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
 
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/utils"
 	"context"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -20,7 +21,8 @@ type UserService struct {
 }
 
 func NewUserService(logger *utils.Logger, userRepository *repositories.UserRepository, dbClient *mongo.Database,
-	authMiddleware *middleware.AuthMiddleware) *UserService {
+	authMiddleware *middleware.AuthMiddleware,
+) *UserService {
 	return &UserService{
 		Logger:         logger,
 		UserRepository: userRepository,
@@ -80,5 +82,13 @@ func (u *UserService) DeleteUser(ctx context.Context, userId string, password sc
 		return err
 	}
 	return nil
+}
 
+func (u *UserService) UpdateUser(ctx context.Context, userId string, updateUser schemas.UpdateUser) error {
+	err := u.UserRepository.UpdateUser(ctx, userId, updateUser)
+	if err != nil {
+		u.Logger.Error(err.Error())
+		return err
+	}
+	return nil
 }

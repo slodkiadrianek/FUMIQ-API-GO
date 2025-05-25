@@ -4,8 +4,9 @@ import (
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
@@ -66,6 +67,27 @@ func (u *UserController) DeleteUser(c *gin.Context) {
 		})
 	}
 	err = u.UserService.DeleteUser(c, userId, password)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusNoContent, gin.H{})
+}
+
+func (u *UserController) UpdateUser(c *gin.Context) {
+	userId := c.Param("userId")
+	var updateUserData schemas.UpdateUser
+	err := c.BindJSON(&updateUserData)
+	if err != nil {
+		u.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+	}
+	err = u.UserService.UpdateUser(c, userId, updateUserData)
 	if err != nil {
 		c.Error(err)
 		return
