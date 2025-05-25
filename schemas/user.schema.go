@@ -19,40 +19,72 @@ type RegisterUser struct {
 	ConfirmPassword string `json:"confirmPassword" `
 }
 
+type ResetPassword struct {
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
+}
+
+var ResetPasswordSchema = z.Struct(z.Schema{
+	"password":        z.String().Required(),
+	"confirmPassword": z.String().Required(),
+})
+
+func (r *ResetPassword) Validate() (z.ZogIssueMap, error) {
+	if r.ConfirmPassword != r.Password {
+		err := errors.New("password and confirm password must match")
+		return nil, err
+	}
+	errMap := ChangePasswordSchema.Validate(r)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
+}
+
 type ChangePassword struct {
 	ConfirmPassword string `json:"confirmPassword"`
 	NewPassword     string `json:"newPassword"`
 	OldPassword     string `json:"oldPassword"`
 }
 
-func (c *ChangePassword) Validate()(error,z.ZogIssueMap){
-  
+var ChangePasswordSchema = z.Struct(z.Schema{
+	"oldPassword":     z.String().Required(),
+	"newPassword":     z.String().Required(),
+	"confirmPassword": z.String().Required(),
+})
+
+func (c *ChangePassword) Validate() (z.ZogIssueMap, error) {
+	if c.ConfirmPassword != c.NewPassword {
+		err := errors.New("new password and confirm password must match")
+		return nil, err
+	}
+	errMap := ChangePasswordSchema.Validate(c)
+	if errMap != nil {
+		return errMap, nil
+	}
+	return nil, nil
 }
 
 type DeleteUser struct {
 	Password string `json:"password"`
 }
-type ResetPassword struct {
-	NewPassword     string `json:"newPassword"`
-	ConfirmPassword string `json:"confirmPassword"`
-}
 
-func (r *RegisterUser) Validate() (error, z.ZogIssueMap) {
+func (r *RegisterUser) Validate() (z.ZogIssueMap, error) {
 	if r.Password != r.ConfirmPassword {
 		err := errors.New("Password and ConfirmPassword must match")
-		return err, nil
+		return nil, err
 	}
 	errMap := RegisterSchema.Validate(r)
 	if errMap != nil {
-		return nil, errMap
+		return errMap, nil
 	}
 	return nil, nil
 }
 
-func (l *LoginUser) Validate() (error, z.ZogIssueMap) {
+func (l *LoginUser) Validate() (z.ZogIssueMap, error) {
 	errMap := LoginSchema.Validate(l)
 	if errMap != nil {
-		return nil, errMap
+		return errMap, nil
 	}
 	return nil, nil
 }
@@ -77,5 +109,3 @@ var LoginSchema = z.Struct(z.Schema{
 	}),
 	"password": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
 })
-
-var
