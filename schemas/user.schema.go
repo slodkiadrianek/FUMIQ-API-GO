@@ -112,10 +112,10 @@ type UpdateUser struct {
 	Email     string `json:"email"`
 }
 
-func (u *UpdateUser) Validate() (error, z.ZogIssueMap) {
+func (u *UpdateUser) Validate() (z.ZogIssueMap, error) {
 	errMap := UpdateUserSchema.Validate(u)
 	if errMap != nil {
-		return nil, errMap
+		return errMap, nil
 	}
 	return nil, nil
 }
@@ -159,4 +159,3 @@ var ResetPasswordSchema = z.Struct(z.Schema{
 	"password":        z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
 	"confirmPassword": z.String().Required().Min(8).Max(32).ContainsSpecial().ContainsUpper().ContainsDigit(),
 })
-

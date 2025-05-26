@@ -4,6 +4,7 @@ import z "github.com/Oudwins/zog"
 
 type SessionId struct {
 	SessionId string `json:"sessionId"`
+	UserId    string `json:"userId"`
 }
 
 func (s *SessionId) Validate() (z.ZogIssueMap, error) {
@@ -16,6 +17,7 @@ func (s *SessionId) Validate() (z.ZogIssueMap, error) {
 
 var SessionIdSchema = z.Struct(z.Schema{
 	"sessionId": z.String().Required(),
+	"userId":    z.String().Required(),
 })
 
 type JoinQuiz struct {
