@@ -101,3 +101,7 @@ func (q *QuizRepository) GetQuiz(ctx context.Context, quizId string) (models.Qui
 	}
 	return quiz, nil
 }
+
+func (q *QuizRepository) GetAllQuizzes(userId string) ([]models.Quiz, error) {
+	ObjectID, err := primitive.ObjectIDFromHex(userId)
+}
