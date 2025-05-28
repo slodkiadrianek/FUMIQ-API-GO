@@ -29,13 +29,18 @@ func main() {
 	}
 	AuthMiddleware := middleware.NewAuthMiddleware(envVariables.JWTSecret, loggerService, cacheService)
 	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
+	QuizRepository := repositories.NewQuizRepository(DbClient, &loggerService, cacheService)
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, AuthMiddleware)
 	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, AuthMiddleware)
+	QuizService := services.NewQuizService(&loggerService, DbClient, QuizRepository)
 	authController := controllers.NewAuthController(loggerService, AuthService)
 	userController := controllers.NewUserController(loggerService, UserService)
+	quizController := controllers.NewQuizController(loggerService, QuizService)
+
 	AuthRoutes := routes.NewAuthRoutes(authController, AuthMiddleware)
 	UserRoutes := routes.NewUserRoutes(userController, AuthMiddleware)
-	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes}
+	quizRoutes := routes.NewQuizRoutes(&quizController, AuthMiddleware)
+	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes, QuizRoutes: quizRoutes}
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)
 	// gin.SetMode(gin.ReleaseMode)

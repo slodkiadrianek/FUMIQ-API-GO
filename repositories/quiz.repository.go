@@ -77,7 +77,7 @@ func (q *QuizRepository) GetQuiz(ctx context.Context, quizId string) (models.Qui
 		q.Logger.Error("Failed to convert user id to object id", err)
 		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert user id to object id")
 	}
-	res := q.DbClient.Collection("Users").FindOne(ctx, bson.D{{"_id", objectID}})
+	res := q.DbClient.Collection("Quizzes").FindOne(ctx, bson.D{{"_id", objectID}})
 	if errors.Is(res.Err(), mongo.ErrNoDocuments) {
 		q.Logger.Error("Something went wrong during taking data from database")
 		return models.Quiz{}, models.NewError(400, "Database", "Something went wrong during taking data from database")
@@ -102,6 +102,52 @@ func (q *QuizRepository) GetQuiz(ctx context.Context, quizId string) (models.Qui
 	return quiz, nil
 }
 
-func (q *QuizRepository) GetAllQuizzes(userId string) ([]models.Quiz, error) {
+func (q *QuizRepository) GetAllQuizzes(ctx context.Context, userId string) ([]models.Quiz, error) {
+	cacheKey := "Quizzes-" + userId
+	exist, err := q.Caching.ExistData(ctx, cacheKey)
+	if err != nil {
+		q.Logger.Error("Something went wrong during checking cache existence", userId)
+		return []models.Quiz{}, models.NewError(400, "Cache", "Something went wrong during checking cache existence")
+	}
+	if exist > 0 {
+		data, err := q.Caching.GetData(ctx, cacheKey)
+		if err != nil {
+			q.Logger.Error("Something went wrong during getting user from cache", userId)
+			return []models.Quiz{}, models.NewError(400, "Cache", "Something went wrong during getting user from cache")
+		}
+		var quizzes []models.Quiz
+		err = json.Unmarshal([]byte(data), &quizzes)
+		if err != nil {
+			q.Logger.Error("Failed to unmarshal user", err)
+			return []models.Quiz{}, models.NewError(400, "Cache", "Failed to unmarshal user")
+		}
+		return quizzes, nil
+	}
 	ObjectID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		q.Logger.Error("Failed to convert user id to object id", err)
+		return []models.Quiz{}, models.NewError(400, "Database", "Failed to convert user id to object id")
+	}
+	res, err := q.DbClient.Collection("Quizzes").Find(ctx, bson.D{{"userId", ObjectID}})
+	if err != nil {
+		q.Logger.Error("Something went wrong during taking data from database")
+		return []models.Quiz{}, models.NewError(400, "Database", "Something went wrong during taking data from database")
+	}
+	var quizzes []models.Quiz
+	err = res.Decode(quizzes)
+	if err != nil {
+		q.Logger.Error("Failed to decode user", err)
+		return []models.Quiz{}, models.NewError(400, "Database", "Failed to decode user")
+	}
+	dataBytes, err := json.Marshal(quizzes)
+	if err != nil {
+		q.Logger.Error("Failed to marshal data for caching")
+		return []models.Quiz{}, models.NewError(500, "Cache", "Failed to marshal data for caching")
+	}
+	err = q.Caching.SetData(ctx, cacheKey, string(dataBytes), 1000)
+	if err != nil {
+		q.Logger.Error("Something went wrong during adding data to cache")
+		q.Logger.Error("Cache operation failed but database insert was successful")
+	}
+	return quizzes, nil
 }

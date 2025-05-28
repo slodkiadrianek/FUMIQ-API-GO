@@ -1,11 +1,29 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"FUMIQ_API/api/v1/controllers"
+	"FUMIQ_API/middleware"
+	"FUMIQ_API/schemas"
 
-func SetupQuizRoutes(router *gin.RouterGroup) {
+	"github.com/gin-gonic/gin"
+)
+
+type QuizRoutes struct {
+	QuizController *controllers.QuizController
+	AuthMiddleware *middleware.AuthMiddleware
+}
+
+func NewQuizRoutes(quizController *controllers.QuizController, authMiddleware *middleware.AuthMiddleware) *QuizRoutes {
+	return &QuizRoutes{
+		quizController,
+		authMiddleware,
+	}
+}
+
+func (q *QuizRoutes) SetupQuizRoutes(router *gin.RouterGroup) {
 	quizGroup := router.Group("/quizzes")
 	{
-		quizGroup.POST("/")
+		quizGroup.POST("/", q.AuthMiddleware.Verify, middleware.ValidateRequestData[*schemas.CreateQuiz]("body"), q.QuizController.NewQuiz)
 		quizGroup.GET("/:quizId")
 		quizGroup.PATCH("/:quizId")
 		quizGroup.PUT("/:quizId")

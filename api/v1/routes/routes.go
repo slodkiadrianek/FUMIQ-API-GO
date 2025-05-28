@@ -5,6 +5,7 @@ import "github.com/gin-gonic/gin"
 type SetupRoutes struct {
 	AuthRoutes *AuthRoutes
 	UserRoutes *UserRoutes
+	QuizRoutes *QuizRoutes
 }
 
 func (s *SetupRoutes) SetupRoutes(router *gin.Engine) {
@@ -12,6 +13,6 @@ func (s *SetupRoutes) SetupRoutes(router *gin.Engine) {
 
 	s.AuthRoutes.SetupAuthRoutes(routesGroup)
 	s.UserRoutes.SetupUserRoutes(routesGroup)
-	SetupQuizRoutes(routesGroup)
+	s.QuizRoutes.SetupQuizRoutes(routesGroup)
 
 }
