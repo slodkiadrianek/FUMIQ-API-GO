@@ -23,8 +23,13 @@ func NewAuthRoutes(authController *controllers.AuthController, authMiddleware *m
 func (a *AuthRoutes) SetupAuthRoutes(router *gin.RouterGroup) {
 	authGroup := router.Group("/auth")
 	{
+<<<<<<< HEAD
 		authGroup.POST("/register", middleware.ValidateRequestData[*schemas.RegisterUser]("body"), a.AuthController.Register)
 		authGroup.POST("/login", middleware.ValidateRequestData[*schemas.LoginUser]("body"), a.AuthController.Login)
+=======
+		authGroup.POST("/register", middleware.ValidateRequestData[schemas.RegisterUser](schemas.RegisterSchema), a.AuthController.Register)
+		authGroup.POST("/login", middleware.ValidateRequestData[schemas.LoginUser](schemas.LoginSchema), a.AuthController.Login)
+>>>>>>> e50232b (VALIDATION)
 		authGroup.GET("/check", a.AuthMiddleware.Verify, a.AuthController.Verify)
 		authGroup.POST("/logout", a.AuthMiddleware.BlackList, a.AuthController.Logout)
 		authGroup.POST("/reset-password")
