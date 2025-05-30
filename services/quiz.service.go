@@ -36,8 +36,17 @@ func (q *QuizService) NewQuiz(ctx context.Context, quiz *schemas.CreateQuiz) (mo
 func (q *QuizService) GetAllQuizzes(ctx context.Context, userId string) ([]models.Quiz, error) {
 	res, err := q.QuizRepository.GetAllQuizzes(ctx, userId)
 	if err != nil {
-		q.Logger.Error(err.Error())
+		q.Logger.Error(err.Error(), userId)
 		return []models.Quiz{}, err
+	}
+	return res, nil
+}
+
+func (q *QuizService) GetQuiz(ctx context.Context, quizId string) (models.Quiz, error) {
+	res, err := q.QuizRepository.GetQuiz(ctx, quizId)
+	if err != nil {
+		q.Logger.Error(err.Error(), quizId)
+		return models.Quiz{}, err
 	}
 	return res, nil
 }

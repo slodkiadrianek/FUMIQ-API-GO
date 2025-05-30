@@ -35,11 +35,11 @@ var QuestionSchema = z.Struct(z.Shape{
 })
 
 type Question struct {
-	CorrectAnswer string    `json:"correctAnswer"`
-	Options       *[]string `json:"options"`
-	QuestionText  string    `json:"questionText"`
-	QuestionType  string    `json:"questionType"`
-	PhotoUrl      string    `json:"photoUrl"`
+	CorrectAnswer string   `json:"correctAnswer"`
+	Options       []string `json:"options"`
+	QuestionText  string   `json:"questionText"`
+	QuestionType  string   `json:"questionType"`
+	PhotoUrl      string   `json:"photoUrl"`
 }
 
 type QuizParams struct {

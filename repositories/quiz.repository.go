@@ -30,8 +30,8 @@ func NewQuizRepository(dbClient *mongo.Database, logger *utils.Logger, caching *
 }
 
 func (q *QuizRepository) InsertQuiz(ctx context.Context, data *schemas.CreateQuiz) (models.Quiz, error) {
-	quiz := models.NewQuiz(data.UserId, data.Title, data.Description, data.TimeLimit, data.Questions)
-	_, err := q.DbClient.Collection("Quizzes").InsertOne(ctx, quiz)
+	quiz, err := models.NewQuiz(data.UserId, data.Title, data.Description, data.TimeLimit, data.Questions)
+	_, err = q.DbClient.Collection("Quizzes").InsertOne(ctx, quiz)
 
 	if err != nil {
 		q.Logger.Error("Something went wrong during inserting to database")
@@ -74,8 +74,8 @@ func (q *QuizRepository) GetQuiz(ctx context.Context, quizId string) (models.Qui
 	objectID, err := primitive.ObjectIDFromHex(quizId)
 
 	if err != nil {
-		q.Logger.Error("Failed to convert user id to object id", err)
-		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert user id to object id")
+		q.Logger.Error("Failed to convert quiz id to object id", err)
+		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
 	}
 	res := q.DbClient.Collection("Quizzes").FindOne(ctx, bson.D{{"_id", objectID}})
 	if errors.Is(res.Err(), mongo.ErrNoDocuments) {
@@ -134,10 +134,10 @@ func (q *QuizRepository) GetAllQuizzes(ctx context.Context, userId string) ([]mo
 		return []models.Quiz{}, models.NewError(400, "Database", "Something went wrong during taking data from database")
 	}
 	var quizzes []models.Quiz
-	err = res.Decode(quizzes)
+	err = res.All(ctx, &quizzes)
 	if err != nil {
-		q.Logger.Error("Failed to decode user", err)
-		return []models.Quiz{}, models.NewError(400, "Database", "Failed to decode user")
+		q.Logger.Error("Failed to decode quizzes", err)
+		return []models.Quiz{}, models.NewError(400, "Database", "Failed to decode quizzes")
 	}
 	dataBytes, err := json.Marshal(quizzes)
 	if err != nil {

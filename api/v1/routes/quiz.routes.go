@@ -5,6 +5,8 @@ import (
 	"FUMIQ_API/middleware"
 	"FUMIQ_API/schemas"
 
+	// "FUMIQ_API/schemas"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,8 +26,8 @@ func (q *QuizRoutes) SetupQuizRoutes(router *gin.RouterGroup) {
 	quizGroup := router.Group("/quizzes")
 	{
 		quizGroup.POST("/", q.AuthMiddleware.Verify, middleware.ValidateRequestData[*schemas.CreateQuiz]("body"), q.QuizController.NewQuiz)
-		quizGroup.GET("/:quizId")
-		quizGroup.PATCH("/:quizId")
+		quizGroup.GET("/users/:userId", q.AuthMiddleware.Verify, q.QuizController.GetAllQuizzes)
+		quizGroup.GET("/:quizId", q.AuthMiddleware.Verify, q.QuizController.GetQuiz)
 		quizGroup.PUT("/:quizId")
 		quizGroup.DELETE("/:quizId")
 	}
