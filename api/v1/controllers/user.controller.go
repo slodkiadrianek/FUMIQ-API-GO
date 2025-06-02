@@ -22,7 +22,18 @@ func NewUserController(logger utils.Logger, authService *services.UserService) *
 }
 
 func (u *UserController) GetUser(c *gin.Context) {
-	userId := c.Param("userId")
+	userIdData, _ := c.Get("validatedParams")
+	userId, ok := userIdData.(string)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
 	user, err := u.UserService.GetUser(c, userId)
 	if err != nil {
 		c.Error(err)
@@ -32,11 +43,12 @@ func (u *UserController) GetUser(c *gin.Context) {
 }
 
 func (u *UserController) ChangePassword(c *gin.Context) {
-	userId := c.Param("userId")
-	var passwords schemas.ChangePassword
-	err := c.BindJSON(passwords)
-	if err != nil {
-		u.Logger.Error(err.Error())
+	userIdData, _ := c.Get("validatedParams")
+	userId, ok := userIdData.(string)
+	passwordsData, _ := c.Get("validatedData")
+	passwords, ok := passwordsData.(schemas.ChangePassword)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": gin.H{
 				"category":    "Validation",
@@ -45,7 +57,7 @@ func (u *UserController) ChangePassword(c *gin.Context) {
 		})
 		return
 	}
-	err = u.UserService.ChangePassword(c, userId, passwords)
+	err := u.UserService.ChangePassword(c, userId, passwords)
 	if err != nil {
 		c.Error(err)
 		return
@@ -54,19 +66,21 @@ func (u *UserController) ChangePassword(c *gin.Context) {
 }
 
 func (u *UserController) DeleteUser(c *gin.Context) {
-	userId := c.Param("userId")
-	var password schemas.DeleteUser
-	err := c.BindJSON(password)
-	if err != nil {
-		u.Logger.Error(err.Error())
+	userIdData, _ := c.Get("validatedParams")
+	userId, ok := userIdData.(string)
+	passwordData, _ := c.Get("validatedData")
+	password, ok := passwordData.(schemas.DeleteUser)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": gin.H{
 				"category":    "Validation",
 				"description": "Something went wrong",
 			},
 		})
+		return
 	}
-	err = u.UserService.DeleteUser(c, userId, password)
+	err := u.UserService.DeleteUser(c, userId, password)
 	if err != nil {
 		c.Error(err)
 		return
@@ -75,19 +89,21 @@ func (u *UserController) DeleteUser(c *gin.Context) {
 }
 
 func (u *UserController) UpdateUser(c *gin.Context) {
-	userId := c.Param("userId")
-	var updateUserData schemas.UpdateUser
-	err := c.BindJSON(&updateUserData)
-	if err != nil {
-		u.Logger.Error(err.Error())
+	userIdData, _ := c.Get("validatedParams")
+	userId, ok := userIdData.(string)
+	userData, _ := c.Get("validatedData")
+	user, ok := userData.(schemas.UpdateUser)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": gin.H{
 				"category":    "Validation",
 				"description": "Something went wrong",
 			},
 		})
+		return
 	}
-	err = u.UserService.UpdateUser(c, userId, updateUserData)
+	err := u.UserService.UpdateUser(c, userId, user)
 	if err != nil {
 		c.Error(err)
 		return

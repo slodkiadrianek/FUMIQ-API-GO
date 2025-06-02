@@ -4,6 +4,7 @@ import (
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,14 +23,18 @@ func NewAuthController(logger utils.Logger, authService *services.AuthService) *
 }
 
 func (a *AuthController) Register(c *gin.Context) {
-	var user schemas.RegisterUser
-	err := c.BindJSON(&user)
-	if err != nil {
-		a.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	userData, _ := c.Get("validatedData")
+	user, ok := userData.(*schemas.RegisterUser)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Proper data does not exist",
+			},
+		})
 		return
 	}
-	_, err = a.AuthService.RegisterUser(c, &user)
+	_, err := a.AuthService.RegisterUser(c, user)
 	if err != nil {
 		c.Error(err)
 		return
@@ -38,19 +43,19 @@ func (a *AuthController) Register(c *gin.Context) {
 }
 
 func (a *AuthController) Login(c *gin.Context) {
-	var user schemas.LoginUser
-	err := c.BindJSON(&user)
-	if err != nil {
-		a.Logger.Error(err.Error())
+	userData, _ := c.Get("validatedData")
+	user, ok := userData.(*schemas.LoginUser)
+	fmt.Println(ok)
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": gin.H{
 				"category":    "Validation",
-				"description": "Something went wrong",
+				"description": "Proper data does not exist",
 			},
 		})
 		return
 	}
-	token, err := a.AuthService.LoginUser(c, &user)
+	token, err := a.AuthService.LoginUser(c, user)
 	if err != nil {
 		c.Error(err)
 		return
@@ -59,10 +64,6 @@ func (a *AuthController) Login(c *gin.Context) {
 }
 
 func (a *AuthController) Verify(c *gin.Context) {
-<<<<<<< HEAD
-=======
-	fmt.Println(c.GetString("userId"))
->>>>>>> e50232b (VALIDATION)
 	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"user": gin.H{
 		"id":        c.GetString("userId"),
 		"firstName": c.GetString("firstName"), "lastName": c.GetString("lastName"),

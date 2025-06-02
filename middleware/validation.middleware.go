@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"FUMIQ_API/schemas"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -11,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-<<<<<<< HEAD
 type validate interface {
 	Validate() (z.ZogIssueMap, error)
 }
@@ -26,62 +24,59 @@ func ValidateRequestData[T validate](source string) gin.HandlerFunc {
 				return
 			}
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 			var data T
 			if err = json.Unmarshal(bodyBytes, &data); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": err.Error()})
 				c.Abort()
 				return
 			}
+
 			errMaps, err := data.Validate()
 			if errMaps != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": errMaps["$root"]})
-			}
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": err})
-			}
-		}
-		switch source {
-		case "params":
-			var data T
-			err := c.ShouldBindUri(&data)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Failed to read request body"})
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": errMaps["$first"]})
 				c.Abort()
 				return
 			}
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": err.Error()})
+				c.Abort()
+				return
+			}
+
+			c.Set("validatedData", data)
+		}
+
+		processParams := func() {
+			var data T
+			err := c.ShouldBindUri(&data)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Failed to bind URI parameters"})
+				c.Abort()
+				return
+			}
+			errMaps, err := data.Validate()
+			if errMaps != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": errMaps})
+				c.Abort()
+				return
+			}
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "Category": "Validation", "description": err.Error()})
+				c.Abort()
+				return
+			}
+
+			c.Set("validatedParams", data)
+		}
+		switch source {
+		case "params":
+			processParams()
 		case "body":
 			processBody()
 		default:
 			processBody()
-=======
-func ValidateRequestData[T any](schema *z.StructSchema) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		bodyBytes, err := io.ReadAll(c.Request.Body)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Failed to read request body"})
-			c.Abort()
-			return
 		}
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		var data T
-		if err := json.Unmarshal(bodyBytes, &data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": err.Error()})
-			c.Abort()
-			return
-		}
-		if v, ok := any(data).(schemas.RegisterUser); ok {
-			if v.Password != v.ConfirmPassword {
-				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Password and Confirm Password do not match"})
-				c.Abort()
-				return
-			}
-		}
-		errsMaps := schema.Validate(data)
-		if errsMaps != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Validation Error", "description": "Invalid request data", "errors": errsMaps["$root"]})
->>>>>>> e50232b (VALIDATION)
-		}
-
 		c.Next()
 	}
 }
