@@ -35,7 +35,6 @@ func newQuestion(correctAnswer string, questionText, questionType string, photoU
 }
 
 func NewQuiz(userId, title, description string, timeLimit int, question []schemas.Question) (Quiz, error) {
-	// Convert userId string to ObjectID
 	userObjectID, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		return Quiz{}, err
@@ -55,4 +54,3 @@ func NewQuiz(userId, title, description string, timeLimit int, question []schema
 
 	return quiz, nil
 }
-

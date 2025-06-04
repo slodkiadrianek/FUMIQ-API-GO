@@ -1,11 +1,11 @@
 package controllers
 
 import (
+	"net/http"
+
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -84,4 +84,58 @@ func (q *QuizController) GetQuiz(c *gin.Context) {
 		return
 	}
 	c.JSON(200, gin.H{"success": true, "data": gin.H{"quiz": res}})
+}
+
+func (q *QuizController) UpdateQuiz(c *gin.Context) {
+	quizIdData, _ := c.Get("validatedParams")
+	quizId, ok := quizIdData.(string)
+	if !ok {
+		q.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation Params",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
+	updateQuizData, _ := c.Get("validatedData")
+	updateQuiz, ok := updateQuizData.(schemas.CreateQuiz)
+	if !ok {
+		q.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation Body",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
+	err := q.QuizService.UpdateQuiz(c, quizId, updateQuiz)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusNoContent, gin.H{})
+}
+
+func (q *QuizController) DeleteQuiz(c *gin.Context) {
+	quizIdData, _ := c.Get("validatedParams")
+	quizId, ok := quizIdData.(string)
+	if !ok {
+		q.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation Params",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
+	err := q.QuizService.DeleteQuiz(c, quizId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusNoContent, gin.H{})
 }

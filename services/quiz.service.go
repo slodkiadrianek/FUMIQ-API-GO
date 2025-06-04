@@ -1,11 +1,12 @@
 package services
 
 import (
+	"context"
+
 	"FUMIQ_API/models"
 	"FUMIQ_API/repositories"
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/utils"
-	"context"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -49,4 +50,22 @@ func (q *QuizService) GetQuiz(ctx context.Context, quizId string) (models.Quiz, 
 		return models.Quiz{}, err
 	}
 	return res, nil
+}
+
+func (q *QuizService) UpdateQuiz(ctx context.Context, quizId string, updateData schemas.CreateQuiz) error {
+	err := q.QuizRepository.UpdateQuiz(ctx, quizId, updateData)
+	if err != nil {
+		q.Logger.Error(err.Error(), quizId)
+		return err
+	}
+	return nil
+}
+
+func (q *QuizService) DeleteQuiz(ctx context.Context, quizId string) error {
+	err := q.QuizRepository.DeleteQuiz(ctx, quizId)
+	if err != nil {
+		q.Logger.Error(err.Error(), quizId)
+		return err
+	}
+	return nil
 }

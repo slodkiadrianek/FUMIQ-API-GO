@@ -1,10 +1,11 @@
 package controllers
 
 import (
+	"net/http"
+
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,6 +46,16 @@ func (u *UserController) GetUser(c *gin.Context) {
 func (u *UserController) ChangePassword(c *gin.Context) {
 	userIdData, _ := c.Get("validatedParams")
 	userId, ok := userIdData.(string)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
 	passwordsData, _ := c.Get("validatedData")
 	passwords, ok := passwordsData.(schemas.ChangePassword)
 	if !ok {
@@ -68,6 +79,16 @@ func (u *UserController) ChangePassword(c *gin.Context) {
 func (u *UserController) DeleteUser(c *gin.Context) {
 	userIdData, _ := c.Get("validatedParams")
 	userId, ok := userIdData.(string)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
 	passwordData, _ := c.Get("validatedData")
 	password, ok := passwordData.(schemas.DeleteUser)
 	if !ok {
@@ -91,6 +112,16 @@ func (u *UserController) DeleteUser(c *gin.Context) {
 func (u *UserController) UpdateUser(c *gin.Context) {
 	userIdData, _ := c.Get("validatedParams")
 	userId, ok := userIdData.(string)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
 	userData, _ := c.Get("validatedData")
 	user, ok := userData.(schemas.UpdateUser)
 	if !ok {

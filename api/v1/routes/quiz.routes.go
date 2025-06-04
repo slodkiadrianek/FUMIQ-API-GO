@@ -28,7 +28,7 @@ func (q *QuizRoutes) SetupQuizRoutes(router *gin.RouterGroup) {
 		quizGroup.POST("/", q.AuthMiddleware.Verify, middleware.ValidateRequestData[*schemas.CreateQuiz]("body"), q.QuizController.NewQuiz)
 		quizGroup.GET("/users/:userId", q.AuthMiddleware.Verify, q.QuizController.GetAllQuizzes)
 		quizGroup.GET("/:quizId", q.AuthMiddleware.Verify, q.QuizController.GetQuiz)
-		quizGroup.PUT("/:quizId")
+		quizGroup.PUT("/:quizId", q.AuthMiddleware.Verify, q.QuizController.UpdateQuiz)
 		quizGroup.DELETE("/:quizId")
 	}
 }

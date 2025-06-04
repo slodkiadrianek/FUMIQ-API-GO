@@ -3,8 +3,4 @@ go.sum
 .idea
 logs
 tmp
-<<<<<<< HEAD
 bin
-=======
-bin
->>>>>>> fda3ff9adad2331e70e236f7994c7d2d5a360b2a
