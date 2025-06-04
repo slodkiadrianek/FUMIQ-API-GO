@@ -203,3 +203,19 @@ func (q *QuizRepository) DeleteQuiz(ctx context.Context, quizId string) error {
 	}
 	return nil
 }
+
+func (q *QuizRepository) GetQuizByQuizIdAndUserId(ctx context.Context, quizId string, userId string) (models.Quiz, error) {
+	userObjectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		q.Logger.Error("Failed to convert user id to object id", err)
+		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert user id to object id")
+	}
+	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
+	if err != nil {
+		q.Logger.Error("Failed to convert quiz id to object id", err)
+		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
+	}
+	res, err := q.DbClient.Collection("Quizzes").FindOne(ctx, bson.M{"_id": quizObjectId, "userId": userObjectId})
+	if err != nil {
+	}
+}
