@@ -204,31 +204,30 @@ func (q *QuizRepository) DeleteQuiz(ctx context.Context, quizId string) error {
 	return nil
 }
 
-func (q *QuizRepository) GetQuizByQuizIdAndUserId(ctx context.Context, quizId string, userId string) (*models.Quiz, error) {
+func (q *QuizRepository) GetQuizByQuizIdAndUserId(ctx context.Context, quizId string, userId string) (models.Quiz, error) {
 	userObjectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		q.Logger.Error("Failed to convert user id to object id", err)
-		return nil, models.NewError(400, "Database", "Failed to convert user id to object id")
+		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert user id to object id")
 	}
 
 	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
 		q.Logger.Error("Failed to convert quiz id to object id", err)
-		return nil, models.NewError(400, "Database", "Failed to convert quiz id to object id")
+		return models.Quiz{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
 	}
-
 	var data models.Quiz
 	res := q.DbClient.Collection("Quizzes").FindOne(ctx, bson.M{"_id": quizObjectId, "userId": userObjectId})
 	err = res.Decode(&data)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			q.Logger.Error("Quiz not found", userId)
-			return nil, models.NewError(404, "Quiz", "Quiz not found for user "+userId)
+			return models.Quiz{}, models.NewError(404, "Quiz", "Quiz not found for user "+userId)
 		} else {
 			q.Logger.Error("Something went wrong during finding a quiz", quizId)
-			return nil, models.NewError(500, "Quiz", "Something went wrong during finding quiz")
+			return models.Quiz{}, models.NewError(500, "Quiz", "Something went wrong during finding quiz")
 		}
 	}
 
-	return &data, nil
+	return data, nil
 }

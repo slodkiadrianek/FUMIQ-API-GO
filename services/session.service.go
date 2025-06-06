@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"math/rand"
 
 	"FUMIQ_API/models"
 	"FUMIQ_API/repositories"
@@ -18,15 +19,19 @@ type SessionService struct {
 	DbClient          *mongo.Database
 }
 
-func NewSessionService(logger *utils.Logger, sessionRepository *repositories.SessionRepository, QuizRepository *repositories.QuizRepository, dbClient *mongo.Database) *SessionService {
+func NewSessionService(logger *utils.Logger, sessionRepository *repositories.SessionRepository, quizRepository *repositories.QuizRepository, dbClient *mongo.Database) *SessionService {
 	return &SessionService{
 		Logger:            logger,
 		SessionRepository: sessionRepository,
+		QuizRepository:    quizRepository,
 		DbClient:          dbClient,
 	}
 }
 
 func (s *SessionService) StartNewSession(ctx context.Context, quizId string, userId string) (models.Session, error) {
+	if s.QuizRepository == nil {
+		fmt.Println("SIGMA")
+	}
 	ress, err := s.QuizRepository.GetQuizByQuizIdAndUserId(ctx, quizId, userId)
 	if err != nil {
 		return models.Session{}, err
@@ -34,10 +39,21 @@ func (s *SessionService) StartNewSession(ctx context.Context, quizId string, use
 	fmt.Println(ress)
 
 	res, err := s.SessionRepository.FindSesionByQuizIdAndUserId(ctx, quizId, userId)
-	if err != nil {
-		fmt.Println("HUJUS")
-		fmt.Println(err.Error())
+	fmt.Println(res)
+	fmt.Println(err.Error())
+	if err.Error() == "Quiz error : Quiz  not found for "+userId {
+		error := true
+		code := rand.Intn(900000) + 100000
+		for error {
+			code := rand.Intn(900000) + 100000
+			res := s.SessionRepository.FindSessionByCode(ctx, code)
+			error = res
+		}
+		res, err := s.SessionRepository.CreateNewSession(ctx, quizId, userId, code)
+		if err != nil {
+			return models.Session{}, err
+		}
+		return res, nil
 	}
-	fmt.Println("HUJ")
 	return res, nil
 }

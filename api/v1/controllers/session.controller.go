@@ -10,11 +10,11 @@ import (
 )
 
 type SessionController struct {
-	Logger         *utils.Logger
+	Logger         utils.Logger
 	SessionService *services.SessionService
 }
 
-func NewSessionController(logger *utils.Logger, sessionService *services.SessionService) *SessionController {
+func NewSessionController(logger utils.Logger, sessionService *services.SessionService) *SessionController {
 	return &SessionController{
 		Logger:         logger,
 		SessionService: sessionService,

@@ -30,8 +30,8 @@ func main() {
 	}
 	AuthMiddleware := middleware.NewAuthMiddleware(envVariables.JWTSecret, loggerService, cacheService)
 	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
-	SessionRepository := repositories.NewSessionRepository(DbClient, &loggerService, cacheService)
 	QuizRepository := repositories.NewQuizRepository(DbClient, &loggerService, cacheService)
+	SessionRepository := repositories.NewSessionRepository(DbClient, &loggerService, cacheService)
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, AuthMiddleware)
 	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, AuthMiddleware)
 	SessionService := services.NewSessionService(&loggerService, SessionRepository, QuizRepository, DbClient)
@@ -39,7 +39,7 @@ func main() {
 	authController := controllers.NewAuthController(loggerService, AuthService)
 	userController := controllers.NewUserController(loggerService, UserService)
 	quizController := controllers.NewQuizController(loggerService, QuizService)
-	SessionController := controllers.NewSessionController(&loggerService, SessionService)
+	SessionController := controllers.NewSessionController(loggerService, SessionService)
 	SessionRoutes := routes.NewSessionRoutes(SessionController, AuthMiddleware)
 	AuthRoutes := routes.NewAuthRoutes(authController, AuthMiddleware)
 	UserRoutes := routes.NewUserRoutes(userController, AuthMiddleware)

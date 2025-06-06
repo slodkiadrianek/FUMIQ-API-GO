@@ -44,18 +44,19 @@ func (q *QuizController) NewQuiz(c *gin.Context) {
 }
 
 func (q *QuizController) GetAllQuizzes(c *gin.Context) {
-	userIdData, _ := c.Get("validatedParams")
-	userId, ok := userIdData.(string)
-	if !ok {
-		q.Logger.Error("Proper data does not exist")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": gin.H{
-				"category":    "Validation",
-				"description": "Something went wrong",
-			},
-		})
-		return
-	}
+	// userIdData, _ := c.Get("validatedParams")
+	// userId, ok := userIdData.(string)
+	// if !ok {
+	// 	q.Logger.Error("Proper data does not exist")
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"error": gin.H{
+	// 			"category":    "Validation",
+	// 			"description": "Something went wrong",
+	// 		},
+	// 	})
+	// 	return
+	// }
+	userId := c.Param("userId")
 	res, err := q.QuizService.GetAllQuizzes(c, userId)
 	if err != nil {
 		c.Error(err)
