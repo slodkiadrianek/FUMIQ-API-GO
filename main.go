@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"FUMIQ_API/api/v1/controllers"
 	"FUMIQ_API/api/v1/routes"
 	"FUMIQ_API/config"
@@ -8,7 +10,6 @@ import (
 	"FUMIQ_API/repositories"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,18 +30,21 @@ func main() {
 	}
 	AuthMiddleware := middleware.NewAuthMiddleware(envVariables.JWTSecret, loggerService, cacheService)
 	UserRepository := repositories.NewUserRepository(DbClient, &loggerService, cacheService)
+	SessionRepository := repositories.NewSessionRepository(DbClient, &loggerService, cacheService)
 	QuizRepository := repositories.NewQuizRepository(DbClient, &loggerService, cacheService)
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, AuthMiddleware)
 	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, AuthMiddleware)
+	SessionService := services.NewSessionService(&loggerService, SessionRepository, QuizRepository, DbClient)
 	QuizService := services.NewQuizService(&loggerService, DbClient, QuizRepository)
 	authController := controllers.NewAuthController(loggerService, AuthService)
 	userController := controllers.NewUserController(loggerService, UserService)
 	quizController := controllers.NewQuizController(loggerService, QuizService)
-
+	SessionController := controllers.NewSessionController(&loggerService, SessionService)
+	SessionRoutes := routes.NewSessionRoutes(SessionController, AuthMiddleware)
 	AuthRoutes := routes.NewAuthRoutes(authController, AuthMiddleware)
 	UserRoutes := routes.NewUserRoutes(userController, AuthMiddleware)
 	quizRoutes := routes.NewQuizRoutes(&quizController, AuthMiddleware)
-	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes, QuizRoutes: quizRoutes}
+	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes, QuizRoutes: quizRoutes, SessionRoutes: SessionRoutes}
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)
 	// gin.SetMode(gin.ReleaseMode)

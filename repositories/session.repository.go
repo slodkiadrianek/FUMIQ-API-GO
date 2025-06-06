@@ -26,8 +26,12 @@ func NewSessionRepository(dbClient *mongo.Database, logger *utils.Logger, cachin
 	}
 }
 
-func (s *SessionRepository) FindSesionByIdAndUserId(ctx context.Context, quizId string, userId string) (models.Session, error) {
+func (s *SessionRepository) FindSesionByQuizIdAndUserId(ctx context.Context, quizId string, userId string) (models.Session, error) {
 	userObjectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		s.Logger.Error("Failed to convert  id to object id", err)
+		return models.Session{}, models.NewError(400, "Database", "Failed to convert id to object id")
+	}
 	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
 		s.Logger.Error("Failed to convert  id to object id", err)
