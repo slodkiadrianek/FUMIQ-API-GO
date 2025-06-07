@@ -6,6 +6,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type SessionInfo struct {
+	StartedAt            time.Time `json:"startedAt"`
+	EndedAt              time.Time `json:"endedAt"`
+	AmountOfParticipants int       `json:"AmountOfParticipants"`
+}
+
 type Session struct {
 	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	UserID      primitive.ObjectID `json:"userId" bson:"userId"`

@@ -16,15 +16,12 @@ func ArePasswordsSimilar(password, confirmPassword string) error {
 }
 
 func RegexCheck(input, pattern string) error {
-
-	// Compile the regex pattern
 	re, err := regexp.Compile(pattern)
 	if err != nil {
 		fmt.Println("Error compiling regex:", err)
 		return err
 	}
 
-	// Match the string
 	match := re.MatchString(input)
 
 	fmt.Println(input, pattern)
@@ -47,7 +44,6 @@ func RegexCheck(input, pattern string) error {
 	}
 	if !(hasLower && hasUpper && hasDigit && hasSpecial) {
 		return errors.New("password must contain at least 1 lowercase letter, 1 uppercase letter, 1 digit, and 1 special character. It must be at least 8 characters long")
-
 	}
 
 	return nil

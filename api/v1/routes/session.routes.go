@@ -22,7 +22,7 @@ func (s *SessionRoutes) SetupSessionRoutes(router *gin.RouterGroup) {
 	sessionGroup := router.Group("/quizzes")
 	{
 		sessionGroup.POST("/:quizId/sessions", s.AuthMiddleware.Verify, s.SessionController.StartNewSession)
-		// sessionGroup.GET("/:quizId/sessions", s.AuthMiddleware.Verify, q.QuizController.GetAllQuizzes)
+		sessionGroup.GET("/:quizId/sessions", s.AuthMiddleware.Verify, s.SessionController.GetInfoAboutSessions)
 		// sessionGroup.PATCH("/:quizId/sessions/:sessionId", s.AuthMiddleware.Verify, q.QuizController.GetQuiz)
 		// sessionGroup.GET("/:quizId/sessions/:sessionId", s.AuthMiddleware.Verify, q.QuizController.GetQuiz)
 		// sessionGroup.GET("/:quizId/sessions/:sessionId/results", s.AuthMiddleware.Verify, s.QuizController.GetQuiz)

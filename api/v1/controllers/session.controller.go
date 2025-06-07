@@ -45,3 +45,13 @@ func (s *SessionController) StartNewSession(c *gin.Context) {
 		"quiz": res,
 	}})
 }
+
+func (s *SessionController) GetInfoAboutSessions(c *gin.Context) {
+	quizId := c.Param("quizId")
+	res, err := s.SessionService.GetInfoAboutSessions(c, quizId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "data": gin.H{"sessions": res}})
+}

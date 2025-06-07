@@ -39,21 +39,38 @@ func (s *SessionService) StartNewSession(ctx context.Context, quizId string, use
 	fmt.Println(ress)
 
 	res, err := s.SessionRepository.FindSesionByQuizIdAndUserId(ctx, quizId, userId)
-	fmt.Println(res)
-	fmt.Println(err.Error())
-	if err.Error() == "Quiz error : Quiz  not found for "+userId {
-		error := true
-		code := rand.Intn(900000) + 100000
-		for error {
+	if err != nil {
+		if err.Error() == "Quiz error : Quiz  not found for "+userId {
+			error := true
 			code := rand.Intn(900000) + 100000
-			res := s.SessionRepository.FindSessionByCode(ctx, code)
-			error = res
+			for error {
+				code := rand.Intn(900000) + 100000
+				res := s.SessionRepository.FindSessionByCode(ctx, code)
+				error = res
+			}
+			res, err := s.SessionRepository.CreateNewSession(ctx, quizId, userId, code)
+			if err != nil {
+				return models.Session{}, err
+			}
+			return res, nil
 		}
-		res, err := s.SessionRepository.CreateNewSession(ctx, quizId, userId, code)
-		if err != nil {
-			return models.Session{}, err
-		}
-		return res, nil
 	}
 	return res, nil
+}
+
+func (s *SessionService) GetInfoAboutSessions(ctx context.Context, quizId string) ([]models.SessionInfo, error) {
+	res, err := s.SessionRepository.FindAllUserSessions(ctx, quizId)
+	if err != nil {
+		return []models.SessionInfo{}, err
+	}
+	responseData := []models.SessionInfo{}
+	for _, v := range res {
+		responseData = append(responseData, models.SessionInfo{
+			StartedAt:            v.StartedAt,
+			EndedAt:              v.EndedAt,
+			AmountOfParticipants: len(v.Competitors),
+		})
+	}
+
+	return responseData, nil
 }
