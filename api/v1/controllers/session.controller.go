@@ -55,3 +55,14 @@ func (s *SessionController) GetInfoAboutSessions(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"success": true, "data": gin.H{"sessions": res}})
 }
+
+func (s *SessionController) EndQuizSession(c *gin.Context) {
+	quizId := c.Param("quizId")
+	sessionId := c.Param("sessionId")
+	err := s.SessionService.EndQuizSession(c, quizId, sessionId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(204, gin.H{})
+}

@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"FUMIQ_API/config"
 	"FUMIQ_API/models"
@@ -146,11 +147,43 @@ func (s *SessionRepository) EndSession(ctx context.Context, quizId, sessionId st
 	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
 		s.Logger.Error("Failed to convert quiz id to object id", err)
-		return []models.Session{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
+		return models.NewError(400, "Database", "Failed to convert quiz id to object id")
 	}
 	sessionIdObjectId, err := primitive.ObjectIDFromHex(sessionId)
 	if err != nil {
-		s.Logger.Error("Failed to convert quiz id to object id", err)
-		return []models.Session{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
+		s.Logger.Error("Failed to convert session id to object id", err)
+		return models.NewError(400, "Database", "Failed to convert session id to object id")
 	}
+	_, err = s.DbClient.Collection("Sessions").UpdateOne(ctx, bson.M{"_id": sessionIdObjectId, "quizId": quizObjectId}, bson.M{"$set": bson.M{"isActive": false}})
+	if err != nil {
+		s.Logger.Error("Something went wrong during updating data in database", err)
+		return models.NewError(400, "Database", "Something went wrong during updating data in database")
+	}
+	return nil
+}
+
+func (s *SessionRepository) GetInfoAboutSession(ctx context.Context, quizId, sessionId string) (models.Session, error) {
+	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
+	if err != nil {
+		s.Logger.Error("Failed to convert quiz id to object id", err)
+		return models.Session{}, models.NewError(400, "Database", "Failed to convert quiz id to object id")
+	}
+	sessionIdObjectId, err := primitive.ObjectIDFromHex(sessionId)
+	if err != nil {
+		s.Logger.Error("Failed to convert session id to object id", err)
+		return models.Session{}, models.NewError(400, "Database", "Failed to convert session id to object id")
+	}
+	res := s.DbClient.Collection("Sessions").FindOne(ctx, bson.M{"_id": sessionIdObjectId, "quizId": quizObjectId})
+	if errors.Is(res.Err(), mongo.ErrNoDocuments) {
+		s.Logger.Error("Something went wrong during taking data from database")
+		return models.Session{}, models.NewError(400, "Database", "Something went wrong during taking data from database")
+	}
+	var data models.Session
+	err = res.Decode(&data)
+	if err != nil {
+		s.Logger.Error("Something went wrong during decoding data", sessionId)
+		return models.Session{}, models.NewError(400, "Database", "Something went wrong during decoding data")
+	}
+
+	return data, nil
 }

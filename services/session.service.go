@@ -74,3 +74,11 @@ func (s *SessionService) GetInfoAboutSessions(ctx context.Context, quizId string
 
 	return responseData, nil
 }
+
+func (s *SessionService) EndQuizSession(ctx context.Context, quizId, sessionId string) error {
+	err := s.SessionRepository.EndSession(ctx, quizId, sessionId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
