@@ -82,3 +82,11 @@ func (s *SessionService) EndQuizSession(ctx context.Context, quizId, sessionId s
 	}
 	return nil
 }
+
+func (s *SessionService) GetInfoAboutSession(ctx context.Context, quizId, sessionId string) (models.Session, error) {
+	res, err := s.SessionRepository.GetInfoAboutSession(ctx, quizId, sessionId)
+	if err != nil {
+		return models.Session{}, err
+	}
+	return res, nil
+}

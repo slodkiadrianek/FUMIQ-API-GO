@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"FUMIQ_API/config"
 	"FUMIQ_API/models"
@@ -163,6 +164,30 @@ func (s *SessionRepository) EndSession(ctx context.Context, quizId, sessionId st
 }
 
 func (s *SessionRepository) GetInfoAboutSession(ctx context.Context, quizId, sessionId string) (models.Session, error) {
+	cacheKey := "Session-" + sessionId
+	exist, err := s.Caching.ExistData(ctx, cacheKey)
+	if err != nil {
+		s.Logger.Error("Something went wrong during checking cache existence", quizId)
+		return models.Session{}, models.NewError(400, "Cache", "Something went wrong during checking cache existence")
+	}
+
+	if exist > 0 {
+		var data models.Session
+		res, err := s.Caching.GetData(ctx, cacheKey)
+		if err != nil {
+			s.Logger.Error("Something went wrong during getting sessions from cache", quizId)
+			return models.Session{}, models.NewError(400, "Cache", "Something went wrong during getting sessions from cache")
+		}
+
+		err = json.Unmarshal([]byte(res), &data)
+		if err != nil {
+			s.Logger.Error("Failed to unmarshal sessions", err)
+			return models.Session{}, models.NewError(400, "Cache", "Failed to unmarshal sessions")
+		}
+
+		return data, nil
+	}
+
 	quizObjectId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
 		s.Logger.Error("Failed to convert quiz id to object id", err)
@@ -184,6 +209,92 @@ func (s *SessionRepository) GetInfoAboutSession(ctx context.Context, quizId, ses
 		s.Logger.Error("Something went wrong during decoding data", sessionId)
 		return models.Session{}, models.NewError(400, "Database", "Something went wrong during decoding data")
 	}
-
+	bodyBytes, err := json.Marshal(data)
+	if err != nil {
+		s.Logger.Error("Failed to marshal data for caching")
+		return models.Session{}, models.NewError(500, "Cache", "Failed to marshal data for caching")
+	}
+	err = s.Caching.SetData(ctx, cacheKey, string(bodyBytes), 1000)
+	if err != nil {
+		s.Logger.Error("Something went wrong during adding data to cache")
+		s.Logger.Error("Cache operation failed but database insert was successful")
+	}
 	return data, nil
+}
+
+func (s *SessionRepository) FindDataForQuizResults(ctx context.Context, quizId, sessionId string) error {
+	pipeline := mongo.Pipeline{
+		// Match stage - equivalent to findOne filter
+		{{Key: "$match", Value: bson.M{
+			"_id":      sessionId,
+			"quizId":   quizId,
+			"isActive": false,
+		}}},
+		// Populate quizId - equivalent to { path: "quizId", model: "Quiz" }
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "quizzes", // Quiz collection name
+			"localField":   "quizId",
+			"foreignField": "_id",
+			"as":           "quizId",
+		}}},
+		// Convert quizId array to single object (since it's one-to-one)
+		{{Key: "$unwind", Value: bson.M{
+			"path":                       "$quizId",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+		// Populate competitors.userId - equivalent to { path: "competitors.userId", model: "User" }
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "users", // User collection name
+			"localField":   "competitors.userId",
+			"foreignField": "_id",
+			"as":           "competitorUsers",
+		}}},
+		// Map competitor users back to competitors array
+		{{Key: "$addFields", Value: bson.M{
+			"competitors": bson.M{
+				"$map": bson.M{
+					"input": "$competitors",
+					"as":    "competitor",
+					"in": bson.M{
+						"$mergeObjects": bson.A{
+							"$$competitor",
+							bson.M{
+								"userId": bson.M{
+									"$arrayElemAt": bson.A{
+										bson.M{
+											"$filter": bson.M{
+												"input": "$competitorUsers",
+												"cond":  bson.M{"$eq": bson.A{"$$this._id", "$$competitor.userId"}},
+											},
+										},
+										0,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}}},
+		// Remove temporary field
+		{{Key: "$project", Value: bson.M{
+			"competitorUsers": 0,
+		}}},
+	}
+
+	// Execute aggregation
+	cursor, err := s.DbClient.Collection("Sessions").Aggregate(ctx, pipeline)
+	if err != nil {
+		return err
+	}
+	var session models.Session
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&session); err != nil {
+			fmt.Println(session)
+			return nil
+		}
+		return nil
+	}
+
+	return nil
 }
