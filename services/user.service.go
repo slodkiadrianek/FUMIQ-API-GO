@@ -1,12 +1,13 @@
 package services
 
 import (
+	"context"
+
 	"FUMIQ_API/middleware"
 	"FUMIQ_API/models"
 	"FUMIQ_API/repositories"
 	"FUMIQ_API/schemas"
 	"FUMIQ_API/utils"
-	"context"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -14,13 +15,14 @@ import (
 )
 
 type UserService struct {
-	Logger         *utils.Logger
-	UserRepository *repositories.UserRepository
-	DbClient       *mongo.Database
-	AuthMiddleware *middleware.AuthMiddleware
+	Logger            *utils.Logger
+	UserRepository    *repositories.UserRepository
+	SessionRepository *repositories.SessionRepository
+	DbClient          *mongo.Database
+	AuthMiddleware    *middleware.AuthMiddleware
 }
 
-func NewUserService(logger *utils.Logger, userRepository *repositories.UserRepository, dbClient *mongo.Database,
+func NewUserService(logger *utils.Logger, userRepository *repositories.UserRepository, dbClient *mongo.Database, sessionRepository *repositories.SessionRepository,
 	authMiddleware *middleware.AuthMiddleware,
 ) *UserService {
 	return &UserService{
@@ -91,4 +93,12 @@ func (u *UserService) UpdateUser(ctx context.Context, userId string, updateUser 
 		return err
 	}
 	return nil
+}
+
+func (u *UserService) JoinSession(ctx context.Context, userId, code string) (string, error) {
+	res, err := u.SessionRepository.JoinSession(ctx, userId, code)
+	if err != nil {
+		return "", nil
+	}
+	return res, nil
 }

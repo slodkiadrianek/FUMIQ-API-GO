@@ -141,3 +141,31 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusNoContent, gin.H{})
 }
+
+func (u *UserController) JoinSession(c *gin.Context) {
+	userId := c.Param("userId")
+
+	codeData, _ := c.Get("validatedData")
+	code, ok := codeData.(string)
+	if !ok {
+		u.Logger.Error("Proper data does not exist")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"category":    "Validation",
+				"description": "Something went wrong",
+			},
+		})
+		return
+	}
+	res, err := u.UserService.JoinSession(c, userId, code)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "data": gin.H{"quiz": gin.H{"_id": res}}})
+}
+
+func (u *UserController) GetQuestions(c *gin.Context) {
+	userId := c.Param("userId")
+	sessionId := c.Param("sessionId")
+}

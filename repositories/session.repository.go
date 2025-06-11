@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os/user"
+	"time"
 
 	"FUMIQ_API/config"
 	"FUMIQ_API/models"
@@ -297,4 +299,58 @@ func (s *SessionRepository) FindDataForQuizResults(ctx context.Context, quizId, 
 	}
 
 	return nil
+}
+
+func (s *SessionRepository) JoinSession(ctx context.Context, userId, code string) (string, error) {
+	userObjectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		s.Logger.Error(err.Error(), userId)
+		return "", models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
+	}
+	newCompetitor := models.Competitors{
+		UserID:    userObjectId,
+		Finished:  false,
+		StartedAt: time.Now(),
+		Answers:   []models.Answers{},
+	}
+	res := s.DbClient.Collection("Sessions").FindOneAndUpdate(ctx, bson.M{"code": code, "isActive": true}, bson.M{"$push": bson.M{"competitors": newCompetitor}})
+	var data models.Session
+	err = res.Decode(&data)
+	if err == mongo.ErrNoDocuments {
+		s.Logger.Logger.Error()
+		return "", models.NewError(400, "Database", "Something went wrong during updating database")
+	}
+	return data.ID.Hex(), nil
+}
+
+// func (s *SessionRepository) GetQuestions(ctx context.Context, userId, sessionId string) (models.QuestionSession, error) {
+// 	sessionObjectId, err := primitive.ObjectIDFromHex(sessionId)
+// 	if err != nil {
+// 		s.Logger.Error(err.Error(), userId)
+// 		return models.QuestionSession{}, models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
+// 	}
+// 	res := s.DbClient.Collection("Sessions").FindOne(ctx, bson.M{"_id": sessionObjectId, "isActive": true})
+// }
+
+func (s *SessionRepository) SubmitAnswers(ctx context.Context, userId, sessionId string) error {
+	userObjectId, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		s.Logger.Error(err.Error(), userId)
+		return models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
+	}
+	sessionObjectId, err := primitive.ObjectIDFromHex(sessionId)
+	if err != nil {
+		s.Logger.Error(err.Error(), userId)
+		return models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
+	}
+	filter := bson.M{
+		"_id":                sessionObjectId,
+		"competitors.userId": userObjectId,
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"competitors.finished": true,
+		},
+	}
+	res, err := s.DbClient.Collection("Sessions").UpdateOne(ctx, filter, update)
 }
