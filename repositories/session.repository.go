@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os/user"
 	"time"
 
 	"FUMIQ_API/config"
@@ -307,7 +306,7 @@ func (s *SessionRepository) JoinSession(ctx context.Context, userId, code string
 		s.Logger.Error(err.Error(), userId)
 		return "", models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
 	}
-	newCompetitor := models.Competitors{
+	newCompetitor := models.Competitor{
 		UserID:    userObjectId,
 		Finished:  false,
 		StartedAt: time.Now(),
@@ -323,14 +322,40 @@ func (s *SessionRepository) JoinSession(ctx context.Context, userId, code string
 	return data.ID.Hex(), nil
 }
 
-// func (s *SessionRepository) GetQuestions(ctx context.Context, userId, sessionId string) (models.QuestionSession, error) {
-// 	sessionObjectId, err := primitive.ObjectIDFromHex(sessionId)
-// 	if err != nil {
-// 		s.Logger.Error(err.Error(), userId)
-// 		return models.QuestionSession{}, models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
-// 	}
-// 	res := s.DbClient.Collection("Sessions").FindOne(ctx, bson.M{"_id": sessionObjectId, "isActive": true})
-// }
+func (s *SessionRepository) GetQuestions(ctx context.Context, userId, sessionId string) (models.PopulatedSession, error) {
+	sessionObjectId, err := primitive.ObjectIDFromHex(sessionId)
+	if err != nil {
+		s.Logger.Error(err.Error(), userId)
+		return models.PopulatedSession{}, models.NewError(400, "Database", "Something went wrong during conversion id to object Id")
+	}
+	pipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"sessionId": sessionObjectId,
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "Quizzes",
+				"localField":   "quizId",
+				"foreignField": "_id",
+				"as":           "quiz",
+			},
+		},
+	}
+	res, err := s.DbClient.Collection("Sessions").Aggregate(ctx, pipeline)
+	if err != nil {
+		s.Logger.Error("Something went wrong during finding data in database", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+		return models.PopulatedSession{}, models.NewError(400, "Database", "Something went wrong during finding data in database")
+	}
+	var data models.PopulatedSession
+	err = res.Decode(&data)
+	if err != nil {
+		s.Logger.Error("Something went wrong during data conversion", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+		return models.PopulatedSession{}, models.NewError(400, "Converion", "Something went wrong during data conversion")
+	}
+	return data, nil
+}
 
 func (s *SessionRepository) SubmitAnswers(ctx context.Context, userId, sessionId string) error {
 	userObjectId, err := primitive.ObjectIDFromHex(userId)
@@ -352,5 +377,10 @@ func (s *SessionRepository) SubmitAnswers(ctx context.Context, userId, sessionId
 			"competitors.finished": true,
 		},
 	}
-	res, err := s.DbClient.Collection("Sessions").UpdateOne(ctx, filter, update)
+	_, err = s.DbClient.Collection("Sessions").UpdateOne(ctx, filter, update)
+	if err != nil {
+		s.Logger.Error("Something went wrong during updating data in database", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+		return models.NewError(400, "Database", "Something went wrong during updating data in database")
+	}
+	return nil
 }

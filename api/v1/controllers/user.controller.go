@@ -168,4 +168,23 @@ func (u *UserController) JoinSession(c *gin.Context) {
 func (u *UserController) GetQuestions(c *gin.Context) {
 	userId := c.Param("userId")
 	sessionId := c.Param("sessionId")
+	res, err := u.UserService.GetQuestions(c, userId, sessionId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "data": gin.H{
+		"quiz": res,
+	}})
+}
+
+func (u *UserController) SubmitAnswers(c *gin.Context) {
+	userId := c.Param("userId")
+	sessionId := c.Param("sessionId")
+	err := u.UserService.SubmitAnswers(c, userId, sessionId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(204, gin.H{})
 }

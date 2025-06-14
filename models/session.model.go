@@ -6,22 +6,28 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type SessionQuestions struct {
+	ID         primitive.ObjectID `json:"id" bson:"_id"`
+	Quiz       Quiz               `json:"quiz" bson:"quiz"`
+	Competitor Competitor         `json:"competitor" bson:"competitor"`
+}
+
 type QuestionSession struct {
 	ID         primitive.ObjectID `json:"id" bson:"_id"`
 	UserID     primitive.ObjectID `json:"userId" `
 	QuizID     primitive.ObjectID `json:"quizId"`
-	Competitor Competitors        `json:"competitor"`
+	Competitor Competitor         `json:"competitor"`
 }
 
 type PopulatedSession struct {
-	ID          primitive.ObjectID     `json:"id,omitempty" bson:"_id,omitempty"`
-	UserID      primitive.ObjectID     `json:"userId" bson:"userId"`
-	QuizID      Quiz                   `json:"quizId" bson:"quizId"`
-	Code        int                    `json:"code" bson:"code"`
-	IsActive    bool                   `json:"isActive" bson:"isActive"`
-	Competitors []PopulatedCompetitors `json:"competitors" bson:"competitors"`
-	StartedAt   time.Time              `json:"startedAt" bson:"startedAt"`
-	EndedAt     time.Time              `json:"endedAt" bson:"endedAt"`
+	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UserID      primitive.ObjectID `json:"userId" bson:"userId"`
+	QuizID      Quiz               `json:"quizId" bson:"quizId"`
+	Code        int                `json:"code" bson:"code"`
+	IsActive    bool               `json:"isActive" bson:"isActive"`
+	Competitors []Competitor       `json:"competitors" bson:"competitors"`
+	StartedAt   time.Time          `json:"startedAt" bson:"startedAt"`
+	EndedAt     time.Time          `json:"endedAt" bson:"endedAt"`
 }
 
 type PopulatedCompetitors struct {
@@ -54,12 +60,12 @@ type Session struct {
 	QuizID      primitive.ObjectID `json:"quizId" bson:"quizId"`
 	Code        int                `json:"code" bson:"code"`
 	IsActive    bool               `json:"isActive" bson:"isActive"`
-	Competitors []Competitors      `json:"competitors" bson:"competitors"`
+	Competitors []Competitor       `json:"competitors" bson:"competitors"`
 	StartedAt   time.Time          `json:"startedAt" bson:"startedAt"`
 	EndedAt     time.Time          `json:"endedAt" bson:"endedAt"`
 }
 
-type Competitors struct {
+type Competitor struct {
 	UserID    primitive.ObjectID `json:"userId" bson:"userId"`
 	Answers   []Answers          `json:"answers" bson:"answers"`
 	StartedAt time.Time          `json:"startedAt" bson:"startedAt"`
@@ -78,7 +84,7 @@ func NewSession(userId, quizId primitive.ObjectID, code int) Session {
 		QuizID:      quizId,
 		Code:        code,
 		IsActive:    true,
-		Competitors: []Competitors{},
+		Competitors: []Competitor{},
 		StartedAt:   time.Now(),
 		EndedAt:     time.Now(),
 	}

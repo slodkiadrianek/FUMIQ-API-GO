@@ -102,3 +102,39 @@ func (u *UserService) JoinSession(ctx context.Context, userId, code string) (str
 	}
 	return res, nil
 }
+
+func (u *UserService) SubmitAnswers(ctx context.Context, userId, sessionId string) error {
+	err := u.SessionRepository.SubmitAnswers(ctx, userId, sessionId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserService) GetQuestions(ctx context.Context, userId, sessionId string) (models.SessionQuestions, error) {
+	queryRes, err := u.SessionRepository.GetQuestions(ctx, userId, sessionId)
+	if err != nil {
+		return models.SessionQuestions{}, err
+	}
+	var user models.Competitor
+	doesUserExist := 0
+	for _, v := range queryRes.Competitors {
+		if v.UserID.Hex() == userId {
+			user = v
+			doesUserExist = 1
+		}
+	}
+	if doesUserExist != 0 {
+
+		if user.Finished {
+			return models.SessionQuestions{}, models.NewError(400, "Session", "You have already finished this session")
+		}
+		serviceRes := models.SessionQuestions{
+			ID:         queryRes.ID,
+			Quiz:       queryRes.QuizID,
+			Competitor: user,
+		}
+		return serviceRes, nil
+	}
+	return models.SessionQuestions{}, models.NewError(400, "Session", "You have to join session")
+}
