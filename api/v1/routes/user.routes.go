@@ -27,11 +27,10 @@ func (u *UserRoutes) SetupUserRoutes(router *gin.RouterGroup) {
 		userGroup.PATCH("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.ChangePassword]("body"), u.AuthMiddleware.Verify, u.UserController.ChangePassword)
 		userGroup.PUT("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.UpdateUser]("body"), u.UserController.UpdateUser)
 		userGroup.DELETE("/:userId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.DeleteUser]("body"), u.AuthMiddleware.Verify, u.UserController.DeleteUser)
-		userGroup.GET("/:userId/quizzes", middleware.ValidateRequestData[*schemas.UserId]("params"))
-		userGroup.POST("/:userId/sessions", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
-		userGroup.GET("/:userId/sessions/:sessionId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
-		userGroup.PATCH("/:userId/sessions/:sessionId", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
-		userGroup.GET("/:userId/sessions/:sessionId/results", middleware.ValidateRequestData[*schemas.UserId]("params"), middleware.ValidateRequestData[*schemas.SessionId]("params"))
+		userGroup.POST("/:userId/sessions", u.AuthMiddleware.Verify, middleware.ValidateRequestData[*schemas.JoinQuiz]("body"), u.UserController.JoinSession)
+		userGroup.GET("/:userId/sessions/:sessionId", u.AuthMiddleware.Verify, u.UserController.GetQuestions)
+		userGroup.PATCH("/:userId/sessions/:sessionId", u.AuthMiddleware.Verify, u.UserController.SubmitAnswers)
+		userGroup.GET("/:userId/sessions/:sessionId/results")
 
 	}
 }

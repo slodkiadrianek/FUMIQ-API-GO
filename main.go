@@ -33,7 +33,7 @@ func main() {
 	QuizRepository := repositories.NewQuizRepository(DbClient, &loggerService, cacheService)
 	SessionRepository := repositories.NewSessionRepository(DbClient, &loggerService, cacheService)
 	AuthService := services.NewAuthService(DbClient, &loggerService, UserRepository, AuthMiddleware)
-	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, AuthMiddleware)
+	UserService := services.NewUserService(&loggerService, UserRepository, DbClient, SessionRepository, AuthMiddleware)
 	SessionService := services.NewSessionService(&loggerService, SessionRepository, QuizRepository, DbClient)
 	QuizService := services.NewQuizService(&loggerService, DbClient, QuizRepository)
 	authController := controllers.NewAuthController(loggerService, AuthService)

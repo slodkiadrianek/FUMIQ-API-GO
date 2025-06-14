@@ -43,7 +43,6 @@ func ValidateRequestData[T validate](source string) gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-
 			c.Set("validatedData", data)
 		}
 

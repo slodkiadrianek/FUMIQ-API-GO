@@ -144,20 +144,19 @@ func (u *UserController) UpdateUser(c *gin.Context) {
 
 func (u *UserController) JoinSession(c *gin.Context) {
 	userId := c.Param("userId")
-
-	codeData, _ := c.Get("validatedData")
-	code, ok := codeData.(string)
-	if !ok {
-		u.Logger.Error("Proper data does not exist")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": gin.H{
-				"category":    "Validation",
-				"description": "Something went wrong",
-			},
-		})
-		return
-	}
-	res, err := u.UserService.JoinSession(c, userId, code)
+	// codeData, _ := c.Get("validatedData")
+	// code, ok := codeData.(*schemas.JoinQuiz)
+	// if !ok {
+	// 	u.Logger.Error("Proper data does not exist")
+	// 	c.JSON(http.StatusBadRequest, gin.H{
+	// 		"error": gin.H{
+	// 			"category":    "Validation",
+	// 			"description": "Something went wrong",
+	// 		},
+	// 	})
+	// 	return
+	// }
+	res, err := u.UserService.JoinSession(c, userId, "318618")
 	if err != nil {
 		c.Error(err)
 		return

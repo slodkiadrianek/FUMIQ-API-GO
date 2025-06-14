@@ -41,6 +41,9 @@ func (s *SessionRepository) FindSesionByQuizIdAndUserId(ctx context.Context, qui
 		s.Logger.Error("Failed to convert  id to object id", err)
 		return models.Session{}, models.NewError(400, "Database", "Failed to convert id to object id")
 	}
+	if s.DbClient == nil {
+		return models.Session{}, fmt.Errorf("database client is not initialized")
+	}
 	var data models.Session
 	res := s.DbClient.Collection("Sessions").FindOne(ctx, bson.M{"quizId": quizObjectId, "userId": userObjectId, "isActive": true})
 	err = res.Decode(&data)
