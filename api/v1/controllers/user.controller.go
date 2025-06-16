@@ -188,13 +188,4 @@ func (u *UserController) SubmitAnswers(c *gin.Context) {
 	c.JSON(204, gin.H{})
 }
 
-func (u *UserController) SubmitAnswers(c *gin.Context) {
-	userId := c.Param("userId")
-	sessionId := c.Param("sessionId")
-	err := u.UserService.SubmitAnswers(c, sessionId, userId)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-	c.JSON(204, gin.H{})
-}
+
