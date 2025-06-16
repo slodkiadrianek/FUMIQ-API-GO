@@ -26,10 +26,11 @@ func NewUserService(logger *utils.Logger, userRepository *repositories.UserRepos
 	authMiddleware *middleware.AuthMiddleware,
 ) *UserService {
 	return &UserService{
-		Logger:         logger,
-		UserRepository: userRepository,
-		DbClient:       dbClient,
-		AuthMiddleware: authMiddleware,
+		Logger:            logger,
+		UserRepository:    userRepository,
+		DbClient:          dbClient,
+		AuthMiddleware:    authMiddleware,
+		SessionRepository: sessionRepository,
 	}
 }
 
@@ -95,10 +96,10 @@ func (u *UserService) UpdateUser(ctx context.Context, userId string, updateUser 
 	return nil
 }
 
-func (u *UserService) JoinSession(ctx context.Context, userId, code string) (string, error) {
+func (u *UserService) JoinSession(ctx context.Context, userId string, code int) (string, error) {
 	res, err := u.SessionRepository.JoinSession(ctx, userId, code)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return res, nil
 }

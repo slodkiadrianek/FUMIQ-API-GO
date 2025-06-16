@@ -303,7 +303,7 @@ func (s *SessionRepository) FindDataForQuizResults(ctx context.Context, quizId, 
 	return nil
 }
 
-func (s *SessionRepository) JoinSession(ctx context.Context, userId, code string) (string, error) {
+func (s *SessionRepository) JoinSession(ctx context.Context, userId string, code int) (string, error) {
 	userObjectId, err := primitive.ObjectIDFromHex(userId)
 	if err != nil {
 		s.Logger.Error(err.Error(), userId)
@@ -319,8 +319,8 @@ func (s *SessionRepository) JoinSession(ctx context.Context, userId, code string
 	var data models.Session
 	err = res.Decode(&data)
 	if err == mongo.ErrNoDocuments {
-		s.Logger.Logger.Error()
-		return "", models.NewError(400, "Database", "Something went wrong during updating database")
+		s.Logger.Error("Quiz with this code does not exist")
+		return "", models.NewError(400, "Database", "Quiz with this code does not exist")
 	}
 	return data.ID.Hex(), nil
 }

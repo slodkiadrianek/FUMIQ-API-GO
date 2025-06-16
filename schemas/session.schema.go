@@ -21,7 +21,7 @@ var SessionIdSchema = z.Struct(z.Schema{
 })
 
 type JoinQuiz struct {
-	Code string `json:"code"`
+	Code int `json:"code"`
 }
 
 func (j *JoinQuiz) Validate() (z.ZogIssueMap, error) {
@@ -33,5 +33,5 @@ func (j *JoinQuiz) Validate() (z.ZogIssueMap, error) {
 }
 
 var JoinQuizSchema = z.Struct(z.Schema{
-	"code": z.String().Required(),
+	"code": z.Int().Required(),
 })
