@@ -315,12 +315,20 @@ func (s *SessionRepository) JoinSession(ctx context.Context, userId string, code
 		StartedAt: time.Now(),
 		Answers:   []models.Answers{},
 	}
-	res := s.DbClient.Collection("Sessions").FindOneAndUpdate(ctx, bson.M{"code": code, "isActive": true}, bson.M{"$push": bson.M{"competitors": newCompetitor}})
+	res := s.DbClient.Collection("Sessions").FindOneAndUpdate(
+		ctx,
+		bson.M{
+			"code":               code,
+			"isActive":           true,
+			"competitors.userId": bson.M{"$ne": newCompetitor.UserID}, // Assuming newCompetitor has an ID field
+		},
+		bson.M{"$push": bson.M{"competitors": newCompetitor}},
+	)
 	var data models.Session
 	err = res.Decode(&data)
 	if err == mongo.ErrNoDocuments {
-		s.Logger.Error("Quiz with this code does not exist")
-		return "", models.NewError(400, "Database", "Quiz with this code does not exist")
+		s.Logger.Error("Quiz with this code does not exist or you already ended this quiz ")
+		return "", models.NewError(400, "Database", "Quiz with this code does not exist or you  already ended this quiz")
 	}
 	return data.ID.Hex(), nil
 }
@@ -346,16 +354,34 @@ func (s *SessionRepository) GetQuestions(ctx context.Context, userId, sessionId 
 			},
 		},
 	}
-	res, err := s.DbClient.Collection("Sessions").Aggregate(ctx, pipeline)
+	// res, err := s.DbClient.Collection("Sessions").Aggregate(ctx, pipeline)
+	// if err != nil {
+	// 	s.Logger.Error("Something went wrong during finding data in database", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+	// 	return models.PopulatedSession{}, models.NewError(400, "Database", "Something went wrong during finding data in database")
+	// }
+	// var data models.PopulatedSession
+	// err = res.Decode(&data)
+	// if err != nil {
+	// 	s.Logger.Error("Something went wrong during data conversion", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+	// 	return models.PopulatedSession{}, models.NewError(400, "Converion", "Something went wrong during data conversion")
+	// }
+	cursor, err := s.DbClient.Collection("Sessions").Aggregate(ctx, pipeline)
 	if err != nil {
 		s.Logger.Error("Something went wrong during finding data in database", map[string]interface{}{"userId": userId, "sessionId": sessionId})
 		return models.PopulatedSession{}, models.NewError(400, "Database", "Something went wrong during finding data in database")
 	}
+	defer cursor.Close(ctx)
+
 	var data models.PopulatedSession
-	err = res.Decode(&data)
-	if err != nil {
-		s.Logger.Error("Something went wrong during data conversion", map[string]interface{}{"userId": userId, "sessionId": sessionId})
-		return models.PopulatedSession{}, models.NewError(400, "Converion", "Something went wrong during data conversion")
+	if cursor.Next(ctx) {
+		err = cursor.Decode(&data)
+		if err != nil {
+			s.Logger.Error("Something went wrong during data conversion", map[string]interface{}{"userId": userId, "sessionId": sessionId, "error": err.Error()})
+			return models.PopulatedSession{}, models.NewError(400, "Conversion", "Something went wrong during data conversion")
+		}
+	} else {
+		s.Logger.Error("No session found", map[string]interface{}{"userId": userId, "sessionId": sessionId})
+		return models.PopulatedSession{}, models.NewError(404, "NotFound", "Session not found")
 	}
 	return data, nil
 }

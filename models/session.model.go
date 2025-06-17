@@ -22,7 +22,7 @@ type QuestionSession struct {
 type PopulatedSession struct {
 	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	UserID      primitive.ObjectID `json:"userId" bson:"userId"`
-	QuizID      Quiz               `json:"quizId" bson:"quizId"`
+	QuizID      Quiz               `json:"quizId" bson:"quiz"`
 	Code        int                `json:"code" bson:"code"`
 	IsActive    bool               `json:"isActive" bson:"isActive"`
 	Competitors []Competitor       `json:"competitors" bson:"competitors"`
