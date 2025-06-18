@@ -6,12 +6,14 @@ import (
 	"FUMIQ_API/api/v1/controllers"
 	"FUMIQ_API/api/v1/routes"
 	"FUMIQ_API/config"
+	"FUMIQ_API/docs"
 	"FUMIQ_API/middleware"
 	"FUMIQ_API/repositories"
 	"FUMIQ_API/services"
 	"FUMIQ_API/utils"
-
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -47,6 +49,13 @@ func main() {
 	routesConfig := routes.SetupRoutes{AuthRoutes: AuthRoutes, UserRoutes: UserRoutes, QuizRoutes: quizRoutes, SessionRoutes: SessionRoutes}
 	router.Use(middleware.ErrorMiddleware())
 	routesConfig.SetupRoutes(router)
+	docs.SwaggerInfo.Title = "FUMIQ API"
+	docs.SwaggerInfo.Description = "This is the FUMIQ API server."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:3008"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// gin.SetMode(gin.ReleaseMode)
 	err = router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 	if err != nil {
